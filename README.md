@@ -211,6 +211,25 @@ Notebook sandboxes are also available:
 notebooks/muon_db_00_catalog_and_layers.ipynb
 notebooks/muon_db_01_sql_sandbox.ipynb
 notebooks/muon_db_02_visualization_sandbox.ipynb
+notebooks/muon_db_03_diamond_research_blueprint.ipynb
+```
+
+## DIAMOND Research Architecture
+
+ColliderLake is designed to grow downstream from a physics-ready lakehouse into a research platform. The DIAMOND architecture defines planned layers for certified physics events, analysis marts, object relations, graph-ready tables, anomaly candidates, validation, lineage, and publication-ready datasets.
+
+Start here:
+
+```text
+docs/DIAMOND_RESEARCH_ARCHITECTURE.md
+docs/RESEARCH_LAYER_TABLE_CONTRACTS.md
+docs/RESEARCH_ROADMAP.md
+```
+
+List planned downstream layers:
+
+```powershell
+python scripts/list_research_layers.py
 ```
 
 Keep future additions modular and batch-oriented so exploratory scripts do not turn into full-scale processing jobs by accident.
