@@ -1,6 +1,6 @@
-# CERN Open Data NanoAOD Test Workspace
+# ColliderLake
 
-Lightweight local workspace for downloading, inspecting, extracting, plotting, and converting a few CMS NanoAOD ROOT files from CERN Open Data. This is intentionally scoped for research prototyping, not CERN-scale production processing.
+ColliderLake is a local CMS Open Data lakehouse workspace for downloading, inspecting, extracting, plotting, converting, and curating SingleMuon NanoAOD data. It is intentionally scoped for research prototyping, not CERN-scale production processing.
 
 Primary starter dataset:
 
@@ -12,7 +12,7 @@ Primary starter dataset:
 ## Structure
 
 ```text
-cern_workspace/
+ColliderLake/
 |-- data/
 |   |-- adoc/
 |   |-- raw/
@@ -44,7 +44,7 @@ Python 3.11 or newer is recommended.
 Linux/macOS:
 
 ```bash
-cd cern_workspace
+cd ColliderLake
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -54,7 +54,7 @@ python -m pip install -r requirements.txt
 Windows PowerShell with Python 3.11 installed:
 
 ```powershell
-cd cern_workspace
+cd ColliderLake
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
@@ -64,7 +64,7 @@ python -m pip install -r requirements.txt
 If `py -3.11` is not available but `python` points to Python 3.11 or newer:
 
 ```powershell
-cd cern_workspace
+cd ColliderLake
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip

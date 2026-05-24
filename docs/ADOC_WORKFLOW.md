@@ -9,13 +9,13 @@ In this workspace, `adoc` means manually supplied/ad-hoc test data. Use it when 
 Place manual test ROOT files here:
 
 ```text
-cern_workspace/data/adoc/
+ColliderLake/data/adoc/
 ```
 
 Example:
 
 ```text
-cern_workspace/data/adoc/my_test_nanoaod.root
+ColliderLake/data/adoc/my_test_nanoaod.root
 ```
 
 ROOT files in this folder are ignored by Git through `.gitignore`.
@@ -25,7 +25,7 @@ ROOT files in this folder are ignored by Git through `.gitignore`.
 The normal workflow uses the default CERN Open Data sample:
 
 ```powershell
-cd "c:\Ewok\Abomination\Theory of E\V-TRY\cern_workspace"
+cd "c:\Ewok\Abomination\Theory of E\V-TRY\ColliderLake"
 python scripts/download_sample.py --insecure-ssl
 python scripts/inspect_root.py --input data/raw/61FC1E38-F75C-6B44-AD19-A9894155874E.root
 python scripts/extract_muons.py --input data/raw/61FC1E38-F75C-6B44-AD19-A9894155874E.root --max-batches 2
@@ -45,7 +45,7 @@ CERN URL -> data/raw/*.root -> inspect/extract -> outputs/*.png
 The Adoc workflow starts from a file you manually placed in `data/adoc/`:
 
 ```powershell
-cd "c:\Ewok\Abomination\Theory of E\V-TRY\cern_workspace"
+cd "c:\Ewok\Abomination\Theory of E\V-TRY\ColliderLake"
 python scripts/inspect_root.py --input data/adoc/my_test_nanoaod.root --limit 80
 python scripts/extract_muons.py --input data/adoc/my_test_nanoaod.root --max-batches 2 --output outputs/adoc_muon_pt.png
 python scripts/convert_to_parquet.py --input data/adoc/my_test_nanoaod.root --max-batches 2 --output-dir data/parquet/adoc_test
