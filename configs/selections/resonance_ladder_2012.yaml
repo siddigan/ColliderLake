@@ -4,6 +4,7 @@ analysis: resonance
 muon:
   pt_min: 3.0
   abs_eta_max: 2.4
+  # The reduced 2012 format has no ID branch; global_muon is an explicit no-op.
   quality: global_muon
 pair:
   opposite_charge: true

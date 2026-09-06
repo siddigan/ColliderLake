@@ -1,21 +1,26 @@
 analysis: resonance
+default_n_bins: 100
 fits:
   jpsi:
+    n_bins: 100
     window: [2.8, 3.4]
     signal: crystal_ball
     background: exponential
     pdg_mass: 3.0969
   psi2s:
+    n_bins: 100
     window: [3.4, 3.95]
     signal: gaussian
     background: exponential
     pdg_mass: 3.6861
   upsilon:
+    n_bins: 100
     window: [8.5, 11.5]
     signal: triple_gaussian
     background: chebyshev2
     pdg_masses: [9.4603, 10.0233, 10.3552]
   z:
+    n_bins: 100
     window: [70.0, 110.0]
     signal: breit_wigner_conv_gaussian
     background: exponential

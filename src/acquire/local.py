@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +26,7 @@ def acquire_dataset(dataset_id: str) -> Path:
         "dataset_id": dataset_id,
         "portal_record": config.get("portal_record"),
         "doi": config.get("doi"),
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "created_at_utc": datetime.now(UTC).isoformat(),
         "local_path": str(raw_dir.relative_to(project_root())),
         "files": [_file_entry(path) for path in files],
     }
@@ -41,12 +41,16 @@ def manifest_path(dataset_id: str) -> Path:
 
 
 def manifest_files(dataset_id: str) -> list[Path]:
+    return [path for path, _ in manifest_entries(dataset_id)]
+
+
+def manifest_entries(dataset_id: str) -> list[tuple[Path, dict[str, Any]]]:
     path = manifest_path(dataset_id)
     if not path.exists():
         path = acquire_dataset(dataset_id)
     data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     raw_dir = project_root() / data["local_path"]
-    return [raw_dir / item["name"] for item in data["files"]]
+    return [(raw_dir / item["name"], item) for item in data["files"]]
 
 
 def _file_entry(path: Path) -> dict[str, Any]:

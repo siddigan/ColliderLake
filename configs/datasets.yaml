@@ -8,21 +8,15 @@ datasets:
     format: nanoaod_reduced_muons
     local_path: data/raw/run2012bc_doublemuparked
     certification: prefiltered
+    event_identity: synthetic
     expected_certified_fraction: [0.99, 1.0]
     branches:
-      - run
-      - luminosityBlock
-      - event
+      - nMuon
       - Muon_pt
       - Muon_eta
       - Muon_phi
       - Muon_mass
       - Muon_charge
-      - Muon_tightId
-      - Muon_mediumId
-      - Muon_pfRelIso04_all
-      - HLT_IsoMu24
-      - HLT_Mu50
     files: []
     notes: "Low-threshold dimuon parking source for the resonance ladder."
 
@@ -32,6 +26,7 @@ datasets:
     energy_tev: 13
     format: nanoaodv9_ul
     local_path: data/raw/run2016h_singlemuon
+    event_identity: native
     certification:
       golden_json_record: 14220
       golden_json_file: data/raw/run2016h_singlemuon/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt

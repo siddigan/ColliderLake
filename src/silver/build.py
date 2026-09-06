@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from src.utils.config import dataset_config
@@ -11,22 +12,29 @@ from src.utils.paths import data_path, ensure_parent, project_root
 
 
 def build_silver(dataset_id: str) -> Path:
-    bronze_dir = data_path("bronze", f"dataset={dataset_id}", "events")
-    frame = _read_parquet_dir(bronze_dir)
-    if frame.empty:
-        raise RuntimeError(f"Bronze layer is empty for {dataset_id}")
-    certified = _apply_certification(frame, dataset_config(dataset_id))
-    cleaned = _clean_events(certified)
-    output_dir = data_path("silver", f"dataset={dataset_id}", "events")
-    cleaned.to_parquet(ensure_parent(output_dir / "part-0000.parquet"), index=False)
-    return output_dir
+    config = dataset_config(dataset_id)
+    metrics = {"events_before": 0, "events_after": 0}
+    for event_file in sorted(data_path("bronze", f"dataset={dataset_id}", "events").glob("*.parquet")):
+        events = pd.read_parquet(event_file)
+        certified = _apply_certification(events, config)
+        kept_events = certified[certified["certified"].astype(bool)].reset_index(drop=True)
+        metrics["events_before"] += len(events)
+        metrics["events_after"] += len(kept_events)
+        out_events = data_path("silver", f"dataset={dataset_id}", "events") / event_file.name
+        kept_events.to_parquet(ensure_parent(out_events), index=False)
 
-
-def _read_parquet_dir(path: Path) -> pd.DataFrame:
-    files = sorted(path.rglob("*.parquet"))
-    if not files:
-        raise FileNotFoundError(f"No Parquet files found under {path}")
-    return pd.concat((pd.read_parquet(file) for file in files), ignore_index=True)
+        muon_file = data_path("bronze", f"dataset={dataset_id}", "muons") / event_file.name
+        if muon_file.exists():
+            muons = pd.read_parquet(muon_file)
+            cleaned = _clean_muons(_filter_to_events(muons, kept_events))
+            out_muons = data_path("silver", f"dataset={dataset_id}", "muons") / event_file.name
+            cleaned.to_parquet(ensure_parent(out_muons), index=False)
+    if metrics["events_before"] == 0:
+        raise FileNotFoundError(f"No bronze event files found for {dataset_id}")
+    metrics["certified_fraction"] = metrics["events_after"] / metrics["events_before"]
+    metrics_path = data_path("silver", f"dataset={dataset_id}") / "certification_metrics.json"
+    metrics_path.write_text(json.dumps(metrics, indent=2, sort_keys=True), encoding="utf-8")
+    return data_path("silver", f"dataset={dataset_id}")
 
 
 def _apply_certification(frame: pd.DataFrame, config: dict[str, Any]) -> pd.DataFrame:
@@ -61,9 +69,22 @@ def _is_certified(run: int, lumi: int, intervals: dict[str, list[list[int]]]) ->
     return False
 
 
-def _clean_events(frame: pd.DataFrame) -> pd.DataFrame:
+def _filter_to_events(muons: pd.DataFrame, events: pd.DataFrame) -> pd.DataFrame:
+    if muons.empty or events.empty:
+        return muons.iloc[0:0].copy()
+    keys = ["dataset_id", "run", "luminosityBlock", "event"]
+    keep = events[keys].drop_duplicates()
+    return muons.merge(keep, on=keys, how="inner")
+
+
+def _clean_muons(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return frame.copy()
     output = frame.copy()
-    for flag in ("HLT_IsoMu24", "HLT_Mu50", "Flag_goodVertices", "Flag_METFilters"):
-        if flag not in output.columns:
-            output[flag] = False
-    return output[output["certified"].astype(bool)].reset_index(drop=True)
+    mask = np.isfinite(output["pt"]) & (output["pt"] > 0.0)
+    mask &= np.isfinite(output["eta"]) & (output["eta"].abs() <= 2.4)
+    mask &= np.isfinite(output["phi"])
+    if "iso" in output.columns:
+        iso = pd.to_numeric(output["iso"], errors="coerce")
+        mask &= iso.isna() | (np.isfinite(iso) & (iso >= 0.0))
+    return output[mask].reset_index(drop=True)

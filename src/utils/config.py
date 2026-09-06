@@ -17,7 +17,7 @@ def load_yaml(path: str | Path) -> dict[str, Any]:
     with resolved.open("r", encoding="utf-8") as handle:
         data = yaml.safe_load(handle) or {}
     if not isinstance(data, dict):
-        raise ValueError(f"Expected mapping in {resolved}")
+        raise TypeError(f"Expected mapping in {resolved}")
     return data
 
 
@@ -25,7 +25,7 @@ def load_datasets(path: str | Path | None = None) -> dict[str, dict[str, Any]]:
     data = load_yaml(path or config_path("datasets.yaml"))
     datasets = data.get("datasets", {})
     if not isinstance(datasets, dict):
-        raise ValueError("configs/datasets.yaml must contain a datasets mapping")
+        raise TypeError("configs/datasets.yaml must contain a datasets mapping")
     return datasets
 
 
