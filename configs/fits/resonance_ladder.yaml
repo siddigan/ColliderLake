@@ -1,0 +1,24 @@
+analysis: resonance
+fits:
+  jpsi:
+    window: [2.8, 3.4]
+    signal: crystal_ball
+    background: exponential
+    pdg_mass: 3.0969
+  psi2s:
+    window: [3.4, 3.95]
+    signal: gaussian
+    background: exponential
+    pdg_mass: 3.6861
+  upsilon:
+    window: [8.5, 11.5]
+    signal: triple_gaussian
+    background: chebyshev2
+    pdg_masses: [9.4603, 10.0233, 10.3552]
+  z:
+    window: [70.0, 110.0]
+    signal: breit_wigner_conv_gaussian
+    background: exponential
+    pdg_mass: 91.1876
+caveats:
+  trigger_artifact_30gev: "Known trigger turn-on structure near 30 GeV in 2012 parked data; excluded from fit windows."

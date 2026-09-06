@@ -1,1 +1,1 @@
-"""Physics object selection and reconstruction helpers."""
+"""Physics utilities and fit helpers."""

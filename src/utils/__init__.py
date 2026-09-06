@@ -1,1 +1,1 @@
-"""Shared utility helpers."""
+"""Shared utilities."""

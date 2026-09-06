@@ -8,11 +8,29 @@ __pycache__/
 .ipynb_checkpoints/
 .spark-jars/
 
-data/raw/*.root
-data/adoc/*.root
-data/processed/*
-data/parquet/*
-data/muon_db/*
-outputs/*
+data/raw/**/*.root
+data/raw/**/*.parquet
+data/raw/**/*.csv
+data/bronze/**
+data/silver/**
+data/gold/**
+data/results/**
+!data/raw/
+!data/raw/**/
+!data/**/.gitkeep
 
-!.gitkeep
+POC/.venv/
+POC/venv/
+POC/__pycache__/
+POC/**/*.py[cod]
+POC/.pytest_cache/
+POC/.mypy_cache/
+POC/.ruff_cache/
+POC/.ipynb_checkpoints/
+POC/.spark-jars/
+POC/data/raw/*.root
+POC/data/adoc/*.root
+POC/data/processed/*
+POC/data/parquet/*
+POC/data/muon_db/*
+POC/outputs/*

@@ -1,0 +1,8 @@
+services:
+  pipeline:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ./data:/app/data
+    command: ["python", "-m", "src.cli", "run", "--dataset", "run2012bc_doublemuparked", "--stage", "all"]

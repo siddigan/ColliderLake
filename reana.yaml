@@ -1,0 +1,13 @@
+version: 0.9.0
+inputs:
+  files:
+    - configs/datasets.yaml
+workflow:
+  type: serial
+  specification:
+    steps:
+      - name: colliderlake-run
+        environment: python:3.11-slim
+        commands:
+          - pip install -r requirements.txt
+          - python -m src.cli run --dataset run2012bc_doublemuparked --stage all

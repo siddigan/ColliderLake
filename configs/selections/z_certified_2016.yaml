@@ -1,0 +1,14 @@
+selection_name: z_certified_2016
+dataset: run2016h_singlemuon
+analysis: resonance
+muon:
+  pt_min: 20.0
+  abs_eta_max: 2.4
+  quality: tight_id
+  iso_max: 0.15
+pair:
+  opposite_charge: true
+trigger:
+  paths:
+    - HLT_IsoMu24
+mass_window: [60.0, 120.0]

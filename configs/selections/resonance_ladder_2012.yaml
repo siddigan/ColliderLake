@@ -1,0 +1,12 @@
+selection_name: resonance_ladder_2012
+dataset: run2012bc_doublemuparked
+analysis: resonance
+muon:
+  pt_min: 3.0
+  abs_eta_max: 2.4
+  quality: global_muon
+pair:
+  opposite_charge: true
+trigger:
+  paths: []
+mass_window: [0.25, 300.0]

@@ -1,1 +1,1 @@
-"""Local CERN Open Data ingestion workspace package."""
+"""ColliderLake 2.0 pipeline package."""

@@ -1,2 +1,1 @@
-"""Access helpers for querying the local muon_db lakehouse."""
-
+"""DuckDB access over ColliderLake tables."""

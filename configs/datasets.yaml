@@ -1,0 +1,55 @@
+datasets:
+  run2012bc_doublemuparked:
+    portal_record: 12341
+    doi:
+      - "10.7483/OPENDATA.CMS.YLIC.86ZZ"
+      - "10.7483/OPENDATA.CMS.M5AD.Y3V3"
+    energy_tev: 8
+    format: nanoaod_reduced_muons
+    local_path: data/raw/run2012bc_doublemuparked
+    certification: prefiltered
+    expected_certified_fraction: [0.99, 1.0]
+    branches:
+      - run
+      - luminosityBlock
+      - event
+      - Muon_pt
+      - Muon_eta
+      - Muon_phi
+      - Muon_mass
+      - Muon_charge
+      - Muon_tightId
+      - Muon_mediumId
+      - Muon_pfRelIso04_all
+      - HLT_IsoMu24
+      - HLT_Mu50
+    files: []
+    notes: "Low-threshold dimuon parking source for the resonance ladder."
+
+  run2016h_singlemuon:
+    portal_record: 30563
+    doi: "10.7483/OPENDATA.CMS.4BUS.64MV"
+    energy_tev: 13
+    format: nanoaodv9_ul
+    local_path: data/raw/run2016h_singlemuon
+    certification:
+      golden_json_record: 14220
+      golden_json_file: data/raw/run2016h_singlemuon/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt
+    expected_certified_fraction: [0.50, 1.0]
+    branches:
+      - run
+      - luminosityBlock
+      - event
+      - Muon_pt
+      - Muon_eta
+      - Muon_phi
+      - Muon_mass
+      - Muon_charge
+      - Muon_tightId
+      - Muon_pfRelIso04_all
+      - HLT_IsoMu24
+      - HLT_Mu50
+      - Flag_goodVertices
+      - Flag_METFilters
+    files: []
+    notes: "Certified IsoMu24 Z showcase dataset."

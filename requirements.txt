@@ -1,20 +1,16 @@
-uproot>=5.3
 awkward>=2.6
-vector>=1.4
+duckdb>=1.0
+hist>=2.7
+iminuit>=2.24
+matplotlib>=3.8
+mplhep>=0.3
 numpy>=1.26
 pandas>=2.2
 pyarrow>=15.0
-duckdb>=1.0
-pyspark>=3.5
-matplotlib>=3.8
-hist>=2.7
-mplhep>=0.3
-tqdm>=4.66
+pyyaml>=6.0
 requests>=2.31
-aiohttp>=3.9
-ipykernel>=6.29
-
-# Optional packages for future scaling:
-# coffea>=2024.1
-# dask[complete]>=2024.1
-# polars>=0.20
+typer>=0.12
+uproot>=5.3
+pytest>=8.0
+ruff>=0.5
+mypy>=1.10

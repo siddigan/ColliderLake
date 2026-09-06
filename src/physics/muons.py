@@ -1,23 +1,33 @@
 from __future__ import annotations
 
-import awkward as ak
-import numpy as np
+import math
+
+from src.physics.pdg import MUON_MASS_GEV
 
 
-def flatten_muon_pt(events: ak.Array) -> np.ndarray:
-    """Return a dense NumPy array of all muon pT values in the event batch."""
-    if "Muon_pt" not in events.fields:
-        raise KeyError("Muon_pt branch is required")
-    return ak.to_numpy(ak.flatten(events["Muon_pt"], axis=None))
+def invariant_mass(
+    pt1: float,
+    eta1: float,
+    phi1: float,
+    pt2: float,
+    eta2: float,
+    phi2: float,
+    mass1: float = MUON_MASS_GEV,
+    mass2: float = MUON_MASS_GEV,
+) -> float:
+    e1 = math.sqrt((pt1 * math.cosh(eta1)) ** 2 + mass1**2)
+    e2 = math.sqrt((pt2 * math.cosh(eta2)) ** 2 + mass2**2)
+    px = pt1 * math.cos(phi1) + pt2 * math.cos(phi2)
+    py = pt1 * math.sin(phi1) + pt2 * math.sin(phi2)
+    pz = pt1 * math.sinh(eta1) + pt2 * math.sinh(eta2)
+    mass2_value = (e1 + e2) ** 2 - px**2 - py**2 - pz**2
+    return math.sqrt(max(mass2_value, 0.0))
 
 
-def batch_summary(events: ak.Array) -> dict[str, float]:
-    muon_pt = flatten_muon_pt(events)
-    summary = {
-        "events": float(len(events)),
-        "muons": float(len(muon_pt)),
-    }
-    if len(muon_pt):
-        summary["muon_pt_mean"] = float(np.mean(muon_pt))
-        summary["muon_pt_max"] = float(np.max(muon_pt))
-    return summary
+def delta_phi(phi1: float, phi2: float) -> float:
+    raw = abs(phi1 - phi2)
+    return (2.0 * math.pi - raw) if raw > math.pi else raw
+
+
+def delta_r(eta1: float, phi1: float, eta2: float, phi2: float) -> float:
+    return math.sqrt((eta1 - eta2) ** 2 + delta_phi(phi1, phi2) ** 2)
