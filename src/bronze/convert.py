@@ -161,21 +161,33 @@ def _write_muons(
     part: str,
 ) -> None:
     rows: list[dict[str, Any]] = []
-    pts = _jagged(arrays.get("Muon_pt"), len(base))
+    batch_size = len(base)
+    jagged = {branch: _jagged(arrays.get(branch), batch_size) for branch in MUON_BRANCHES}
+    pts = jagged["Muon_pt"]
+    base_columns = {
+        column: base[column].to_numpy(copy=False)
+        for column in [
+            *EVENT_KEYS,
+            "identity_mode",
+            "_source_file",
+            "_source_sha256",
+            "_ingest_ts",
+        ]
+    }
     for event_idx, event_pts in enumerate(pts):
         for muon_idx, _ in enumerate(event_pts):
-            row = {column: base.iloc[event_idx][column] for column in EVENT_KEYS}
+            row = {column: base_columns[column][event_idx] for column in EVENT_KEYS}
             row.update(
                 {
                     "muon_idx": muon_idx,
-                    "identity_mode": base.iloc[event_idx]["identity_mode"],
-                    "_source_file": base.iloc[event_idx]["_source_file"],
-                    "_source_sha256": base.iloc[event_idx]["_source_sha256"],
-                    "_ingest_ts": base.iloc[event_idx]["_ingest_ts"],
+                    "identity_mode": base_columns["identity_mode"][event_idx],
+                    "_source_file": base_columns["_source_file"][event_idx],
+                    "_source_sha256": base_columns["_source_sha256"][event_idx],
+                    "_ingest_ts": base_columns["_ingest_ts"][event_idx],
                 }
             )
             for branch, column in MUON_BRANCHES.items():
-                values = _jagged(arrays.get(branch), len(base))
+                values = jagged[branch]
                 row[column] = values[event_idx][muon_idx] if muon_idx < len(values[event_idx]) else None
             rows.append(row)
     muons = pd.DataFrame(rows)

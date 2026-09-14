@@ -23,17 +23,21 @@ def fit_resonance(dataset_id: str) -> Path:
         raise FileNotFoundError(f"No gold dimuon files found under {gold_dir}")
 
     config = load_yaml(config_path("fits", "resonance_ladder.yaml"))
-    rows: list[dict[str, Any]] = []
+    masses_parts: list[np.ndarray] = []
+    selection_ids: set[str] = set()
     for file in files:
         frame = pd.read_parquet(file, columns=["mass", "selection_id"])
-        masses = frame["mass"].to_numpy(dtype=float)
-        selection_ids = sorted(str(value) for value in frame["selection_id"].dropna().unique())
-        selection_id = selection_ids[0] if selection_ids else ""
-        for resonance, fit_config in config["fits"].items():
-            window = tuple(float(value) for value in fit_config["window"])
-            if _count_in_window(masses, window) == 0:
-                continue
-            rows.append(fit_masses(resonance, fit_config, masses, selection_id, config))
+        masses_parts.append(frame["mass"].to_numpy(dtype=float))
+        selection_ids.update(str(value) for value in frame["selection_id"].dropna().unique())
+
+    masses = np.concatenate(masses_parts) if masses_parts else np.array([], dtype=float)
+    selection_id = min(selection_ids) if selection_ids else ""
+    rows: list[dict[str, Any]] = []
+    for resonance, fit_config in config["fits"].items():
+        window = tuple(float(value) for value in fit_config["window"])
+        if _count_in_window(masses, window) == 0:
+            continue
+        rows.append(fit_masses(resonance, fit_config, masses, selection_id, config))
 
     if not rows:
         raise RuntimeError(f"No configured resonance windows contained data for {dataset_id}")
@@ -66,14 +70,14 @@ def fit_masses(
     _validate_initial(initial)
 
     minuit = Minuit(cost, **initial)
-    minuit.errordef = Minuit.LIKELIHOOD
+    minuit.errordef = 1.0
     for name, limits in cost.limits.items():
         minuit.limits[name] = limits
     minuit.migrad()
     minuit.hesse()
     if not minuit.fmin.is_valid:
         raise RuntimeError(
-            f"Fit failed for {resonance}: fmin={minuit.fmin}, values={dict(minuit.values)}"
+            f"Fit failed for {resonance}: fmin={minuit.fmin}, values={_minuit_values(minuit)}"
         )
 
     values = {name: float(minuit.values[name]) for name in minuit.parameters}
@@ -193,3 +197,7 @@ def _chi2(observed: np.ndarray, expected: np.ndarray) -> float:
 
 def _count_in_window(masses: np.ndarray, window: tuple[float, float]) -> int:
     return int(np.sum(np.isfinite(masses) & (masses >= window[0]) & (masses <= window[1])))
+
+
+def _minuit_values(minuit: Minuit) -> dict[str, float]:
+    return {name: float(minuit.values[name]) for name in minuit.parameters}

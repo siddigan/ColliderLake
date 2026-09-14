@@ -83,7 +83,10 @@ def triple_gaussian_pdf(centers: Array, params: dict[str, float], window: tuple[
     offset = params["offset"]
     sigma = max(params["sigma"], np.finfo(float).eps)
     scale = max(params["width_scale"], np.finfo(float).eps)
-    weights = normalized(np.clip(np.array([params["frac_1s"], params["frac_2s"], params["frac_3s"]]), 0.0, None))
+    frac_1s = np.clip(params["frac_1s"], 0.0, 1.0)
+    frac_2s = np.clip(params["frac_2s"], 0.0, 1.0)
+    frac_3s = max(1.0 - frac_1s - frac_2s, 0.0)
+    weights = normalized(np.array([frac_1s, frac_2s, frac_3s], dtype=float))
     masses = np.array(
         [
             UPSILON_1S_MASS_GEV + offset,
@@ -99,6 +102,7 @@ def triple_gaussian_pdf(centers: Array, params: dict[str, float], window: tuple[
 
 
 def voigtian_pdf(centers: Array, params: dict[str, float], window: tuple[float, float]) -> Array:
+    # Pseudo-Voigt approximation: fixed Breit-Wigner width mixed with a floating Gaussian resolution.
     sigma = max(params["sigma"], np.finfo(float).eps)
     gamma = Z_WIDTH_GEV / 2.0
     gaussian_fwhm = 2.354820045 * sigma
@@ -160,8 +164,20 @@ def _crystal_ball_spec(resonance: str, window: tuple[float, float]) -> ModelSpec
 def _triple_gaussian_spec(resonance: str, window: tuple[float, float]) -> ModelSpec:
     return ModelSpec(
         "triple_gaussian",
-        {"offset": 0.0, "sigma": max((window[1] - window[0]) / 80.0, np.finfo(float).eps), "width_scale": 1.0, "frac_1s": 0.6, "frac_2s": 0.25, "frac_3s": 0.15},
-        {"offset": (-0.25, 0.25), "sigma": (np.finfo(float).eps, window[1] - window[0]), "width_scale": (0.2, 5.0), "frac_1s": (0.0, 1.0), "frac_2s": (0.0, 1.0), "frac_3s": (0.0, 1.0)},
+        {
+            "offset": 0.0,
+            "sigma": max((window[1] - window[0]) / 80.0, np.finfo(float).eps),
+            "width_scale": 1.0,
+            "frac_1s": 0.6,
+            "frac_2s": 0.25,
+        },
+        {
+            "offset": (-0.25, 0.25),
+            "sigma": (np.finfo(float).eps, window[1] - window[0]),
+            "width_scale": (0.2, 5.0),
+            "frac_1s": (0.0, 1.0),
+            "frac_2s": (0.0, 1.0),
+        },
         triple_gaussian_pdf,
         "offset",
         "sigma",
