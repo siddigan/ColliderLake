@@ -1,0 +1,15 @@
+{
+  "dataset_id": "run2012bc_doublemuparked",
+  "diagnosed_at_utc": "2026-09-20T09:35:48.197632+00:00",
+  "filename": "Run2012BC_DoubleMuParked_Muons.root",
+  "headers": {
+    "accept_ranges": true,
+    "content_length": 2244449133,
+    "final_url": "https://opendata.cern.ch/eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/Run2012BC_DoubleMuParked_Muons.root",
+    "location": null,
+    "url": "https://opendata.cern.ch/eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/Run2012BC_DoubleMuParked_Muons.root"
+  },
+  "output_path": "C:\\Ewok\\Abomination\\Theory of E\\V-TRY\\ColliderLake\\data\\raw\\run2012bc_doublemuparked\\Run2012BC_DoubleMuParked_Muons.root",
+  "url": "https://opendata.cern.ch/eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/Run2012BC_DoubleMuParked_Muons.root",
+  "xrootd_url": "root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/Run2012BC_DoubleMuParked_Muons.root"
+}
