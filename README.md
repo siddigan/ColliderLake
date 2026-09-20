@@ -22,6 +22,17 @@ Then run stages with the Airflow-free CLI:
 python -m src.cli run --dataset run2012bc_doublemuparked --stage all
 ```
 
+Download the 2012 production input with CLAM:
+
+```powershell
+python -m src.cli clam diagnose Run2012BC_DoubleMuParked_Muons.root --write
+python -m src.cli clam download Run2012BC_DoubleMuParked_Muons.root --tool auto
+```
+
+`--tool auto` uses `aria2c` when available and falls back to ColliderLake's
+native resumable downloader. Use `--tool xrdcp` to force the registered XRootD
+URL, or `--dry-run` to print the command without downloading.
+
 Individual stages are also available:
 
 ```powershell

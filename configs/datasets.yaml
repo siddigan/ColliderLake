@@ -17,7 +17,12 @@ datasets:
       - Muon_phi
       - Muon_mass
       - Muon_charge
-    files: []
+    files:
+      - name: Run2012BC_DoubleMuParked_Muons.root
+        url: https://opendata.cern.ch/eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/Run2012BC_DoubleMuParked_Muons.root
+        xrootd_url: root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/Run2012BC_DoubleMuParked_Muons.root
+        size_bytes: 2244449133
+        sha256: null
     notes: "Low-threshold dimuon parking source for the resonance ladder."
 
   run2016h_singlemuon:
