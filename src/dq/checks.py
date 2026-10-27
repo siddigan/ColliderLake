@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
@@ -106,7 +107,10 @@ def _contract_columns(dataset_id: str, layer: str) -> tuple[str | None, list[str
     return profile, list(profiles[profile].get("required_columns", []))
 
 
-def _duplicate_count_duckdb(files: list[Path], keys: list[str], temp_root: Path) -> int:
+def _duplicate_count_duckdb(
+    files: list[Path], keys: list[str], temp_root: Path, memory_limit: str | None = None,
+    settings_observer: Any = None,
+) -> int:
     if not keys:
         return 0
     temp_root.mkdir(parents=True, exist_ok=True)
@@ -114,12 +118,22 @@ def _duplicate_count_duckdb(files: list[Path], keys: list[str], temp_root: Path)
     paths = [str(p).replace("'", "''") for p in files]
     source = "[" + ",".join("'" + p + "'" for p in paths) + "]"
     quoted = ", ".join('"' + k + '"' for k in keys)
+    configured_memory = memory_limit or os.environ.get("COLLIDERLAKE_DQ_MEM", "2GB")
     with tempfile.TemporaryDirectory(prefix="dq-spill-", dir=temp_root) as spill, duckdb.connect() as con:
-        con.execute("SET memory_limit='1GB'")
-        con.execute("SET threads=1")
-        con.execute("SET temp_directory=?", [spill])
+        con.execute("SET memory_limit = ?", [configured_memory])
+        con.execute("SET temp_directory = ?", [spill])
+        con.execute("SET preserve_insertion_order = false")
+        con.execute("SET threads = 2")
+        settings = con.execute(
+            "SELECT current_setting('temp_directory'), current_setting('memory_limit'), "
+            "current_setting('preserve_insertion_order'), current_setting('threads')"
+        ).fetchone()
+        if settings_observer is not None:
+            settings_observer(Path(settings[0]), settings[1], settings[2], settings[3])
+        if Path(settings[0]).resolve() != Path(spill).resolve():
+            raise RuntimeError("DuckDB temp_directory did not resolve to the DQ spill directory")
         query = (
-            f"SELECT COALESCE(SUM(n - 1), 0) FROM (SELECT COUNT(*) n "
+            f"SELECT COALESCE(SUM(c - 1), 0) FROM (SELECT COUNT(*) AS c "
             f"FROM read_parquet({source}, union_by_name=true) "
             f"WHERE " + " AND ".join(f'"{k}" IS NOT NULL' for k in keys) +
             f" GROUP BY {quoted} HAVING COUNT(*) > 1)"
