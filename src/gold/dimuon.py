@@ -5,6 +5,7 @@ from itertools import combinations
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from src.physics.muons import delta_r, pair_kinematics
@@ -35,7 +36,6 @@ def build_gold(dataset_id: str) -> Path:
         output = pd.DataFrame(rows)
         if not output.empty:
             output["pair_idx"] = output["pair_idx"].astype("int32")
-        # TODO(awkward vectorization, Phase 1): replace pandas grouping for full-stat runs.
         output.to_parquet(ensure_parent(output_dir / event_file.name), index=False)
         events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if not output.empty else 0
         if output.empty:
@@ -64,6 +64,124 @@ def _build_pairs_for_part(
     selection: dict[str, Any],
     sel_id: str,
 ) -> list[dict[str, Any]]:
+    """Build all pairs for one silver part without per-event Python loops."""
+    if events.empty or muons.empty:
+        return []
+
+    paths = selection.get("trigger", {}).get("paths", [])
+    event_frame = events.copy()
+    event_frame["_event_order"] = np.arange(len(event_frame), dtype=np.int64)
+    event_frame["trigger_path"] = _trigger_paths(event_frame, paths)
+    event_frame = event_frame[event_frame["trigger_path"].notna()].copy()
+    if event_frame.empty:
+        return []
+    if "identity_mode" not in event_frame.columns:
+        event_frame["identity_mode"] = "native"
+
+    selected = _select_muons(muons, selection.get("muon", {}))
+    if selected.empty:
+        return []
+    counts = selected.groupby(EVENT_KEYS, sort=False).size()
+    too_many = counts[counts > 16]
+    if not too_many.empty:
+        key = tuple(value.item() if isinstance(value, np.generic) else value for value in too_many.index[0])
+        raise ValueError(f"Too many selected muons for event key {key}: {int(too_many.iloc[0])} > 16")
+
+    muon_columns = ["muon_idx", "pt", "eta", "phi", "mass", "charge", "iso"]
+    selected = selected[EVENT_KEYS + muon_columns]
+    left = selected.rename(columns={column: f"{column}_1" for column in muon_columns})
+    right = selected.rename(columns={column: f"{column}_2" for column in muon_columns})
+    pairs = left.merge(right, on=EVENT_KEYS, how="inner", sort=False)
+    pairs = pairs[pairs["muon_idx_1"] < pairs["muon_idx_2"]].copy()
+    if pairs.empty:
+        return []
+    if selection.get("pair", {}).get("opposite_charge", True):
+        pairs = pairs[(pairs["charge_1"] * pairs["charge_2"]) < 0].copy()
+    if pairs.empty:
+        return []
+
+    admitted = event_frame[EVENT_KEYS + ["trigger_path", "identity_mode", "_event_order"]]
+    pairs = pairs.merge(admitted, on=EVENT_KEYS, how="inner", sort=False)
+    if pairs.empty:
+        return []
+
+    pt1 = pairs["pt_1"].to_numpy(dtype=np.float64)
+    eta1 = pairs["eta_1"].to_numpy(dtype=np.float64)
+    phi1 = pairs["phi_1"].to_numpy(dtype=np.float64)
+    pt2 = pairs["pt_2"].to_numpy(dtype=np.float64)
+    eta2 = pairs["eta_2"].to_numpy(dtype=np.float64)
+    phi2 = pairs["phi_2"].to_numpy(dtype=np.float64)
+    mass1 = pairs["mass_1"].to_numpy(dtype=np.float64)
+    mass2 = pairs["mass_2"].to_numpy(dtype=np.float64)
+    energy1 = np.sqrt((pt1 * np.cosh(eta1)) ** 2 + mass1**2)
+    energy2 = np.sqrt((pt2 * np.cosh(eta2)) ** 2 + mass2**2)
+    px = pt1 * np.cos(phi1) + pt2 * np.cos(phi2)
+    py = pt1 * np.sin(phi1) + pt2 * np.sin(phi2)
+    pz = pt1 * np.sinh(eta1) + pt2 * np.sinh(eta2)
+    energy = energy1 + energy2
+    mass = np.sqrt(np.maximum(energy**2 - px**2 - py**2 - pz**2, 0.0))
+    denominator = energy - pz
+    rapidity = np.where(denominator <= 0.0, 0.0, 0.5 * np.log((energy + pz) / denominator))
+    pair_pt = np.sqrt(px**2 + py**2)
+    raw_delta_phi = np.abs(phi1 - phi2)
+    delta_phi_value = np.where(raw_delta_phi > np.pi, 2.0 * np.pi - raw_delta_phi, raw_delta_phi)
+    delta_r_value = np.sqrt((eta1 - eta2) ** 2 + delta_phi_value**2)
+
+    low, high = selection.get("mass_window", [0.0, float("inf")])
+    keep = (mass >= float(low)) & (mass <= float(high))
+    pairs = pairs.loc[keep].copy()
+    if pairs.empty:
+        return []
+    pairs["mass"] = mass[keep]
+    pairs["pt_pair"] = pair_pt[keep]
+    pairs["rapidity"] = rapidity[keep]
+    pairs["delta_r"] = delta_r_value[keep]
+    pairs["_pair_pt_sum"] = pairs["pt_1"] + pairs["pt_2"]
+    pairs = pairs.sort_values(
+        ["_event_order", "_pair_pt_sum", "muon_idx_1", "muon_idx_2"],
+        ascending=[True, False, True, True],
+        kind="mergesort",
+    ).reset_index(drop=True)
+    pairs["pair_idx"] = pairs.groupby(EVENT_KEYS, sort=False).cumcount().astype("int32")
+
+    output = pd.DataFrame(
+        {
+            "dataset_id": pairs["dataset_id"],
+            "run": pairs["run"].astype("int64"),
+            "luminosityBlock": pairs["luminosityBlock"].astype("int64"),
+            "event": pairs["event"].astype("int64"),
+            "mu1_idx": pairs["muon_idx_1"].astype("int64"),
+            "mu2_idx": pairs["muon_idx_2"].astype("int64"),
+            "mass": pairs["mass"].astype("float64"),
+            "pt_pair": pairs["pt_pair"].astype("float64"),
+            "rapidity": pairs["rapidity"].astype("float64"),
+            "delta_r": pairs["delta_r"].astype("float64"),
+            "mu1_pt": pairs["pt_1"].astype("float64"),
+            "mu1_eta": pairs["eta_1"].astype("float64"),
+            "mu1_phi": pairs["phi_1"].astype("float64"),
+            "mu1_iso": pairs["iso_1"].astype("object").where(pairs["iso_1"].notna(), None),
+            "mu1_charge": pairs["charge_1"].astype("int64"),
+            "mu2_pt": pairs["pt_2"].astype("float64"),
+            "mu2_eta": pairs["eta_2"].astype("float64"),
+            "mu2_phi": pairs["phi_2"].astype("float64"),
+            "mu2_iso": pairs["iso_2"].astype("object").where(pairs["iso_2"].notna(), None),
+            "mu2_charge": pairs["charge_2"].astype("int64"),
+            "trigger_path": pairs["trigger_path"].astype("object"),
+            "selection_id": sel_id,
+            "identity_mode": pairs["identity_mode"].astype("object"),
+            "pair_idx": pairs["pair_idx"],
+        }
+    )
+    output["is_leading_pair"] = output["pair_idx"] == 0
+    return output.to_dict("records")
+
+
+def _build_pairs_reference(
+    events: pd.DataFrame,
+    muons: pd.DataFrame,
+    selection: dict[str, Any],
+    sel_id: str,
+) -> list[dict[str, Any]]:
     if events.empty or muons.empty:
         return []
     rows: list[dict[str, Any]] = []
@@ -75,6 +193,40 @@ def _build_pairs_for_part(
             continue
         rows.extend(_event_pairs(event, event_muons.to_dict("records"), selection, sel_id))
     return rows
+
+
+def _select_muons(muons: pd.DataFrame, config: dict[str, Any]) -> pd.DataFrame:
+    frame = muons.copy()
+    if "mass" not in frame.columns:
+        frame["mass"] = MUON_MASS_GEV
+    if "iso" not in frame.columns:
+        frame["iso"] = np.nan
+    mask = ~(frame["pt"].astype(float) < float(config.get("pt_min", 0.0)))
+    mask &= ~(frame["eta"].abs().astype(float) > float(config.get("abs_eta_max", 999.0)))
+    if "iso_max" in config:
+        iso = frame["iso"].astype(float)
+        mask &= iso.notna() & ~(iso >= float(config["iso_max"]))
+    if config.get("quality") == "tight_id":
+        if "tight_id" not in frame.columns:
+            return frame.iloc[0:0].copy()
+        mask &= frame["tight_id"].map(bool)
+    return frame.loc[mask].copy()
+
+
+def _trigger_paths(events: pd.DataFrame, paths: list[str]) -> pd.Series:
+    if not paths:
+        return pd.Series("none", index=events.index, dtype="object")
+    labels = np.full(len(events), None, dtype=object)
+    admitted = np.zeros(len(events), dtype=bool)
+    for path in paths:
+        if path in events.columns:
+            values = events[path].fillna(False).astype(bool).to_numpy()
+        else:
+            values = np.zeros(len(events), dtype=bool)
+        take = (~admitted) & values
+        labels[take] = path
+        admitted |= values
+    return pd.Series(labels, index=events.index, dtype="object")
 
 
 def _event_pairs(

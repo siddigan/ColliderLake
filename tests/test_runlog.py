@@ -104,6 +104,7 @@ def test_summary_file_matches_terminal_summary(tmp_path, monkeypatch, capsys):
     terminal = capsys.readouterr().out
     written = (tmp_path / "artifacts" / "results" / "run_summary.txt").read_text(encoding="utf-8")
     assert written == terminal
+    assert "fit_config_id:" in written
 
 
 def test_logging_does_not_add_parquet_reads(tmp_path, monkeypatch):

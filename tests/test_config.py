@@ -1,4 +1,4 @@
-from src.utils.config import load_yaml, selection_id
+from src.utils.config import fit_config_id, load_yaml, selection_id
 
 
 def test_selection_id_is_stable():
@@ -17,3 +17,9 @@ def test_selection_id_changes_when_cut_changes():
         },
     }
     assert selection_id(selection) != selection_id(changed)
+
+
+def test_fit_config_id_is_stable_and_short():
+    fit_config = load_yaml("configs/fits/resonance_ladder.yaml")
+    assert fit_config_id(fit_config) == fit_config_id(fit_config)
+    assert len(fit_config_id(fit_config)) == 8

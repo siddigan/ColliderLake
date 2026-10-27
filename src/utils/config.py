@@ -57,3 +57,9 @@ def selection_for_dataset(dataset_id: str) -> tuple[Path, dict[str, Any], str]:
 def selection_id(selection: dict[str, Any]) -> str:
     payload = json.dumps(selection, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:8]
+
+
+def fit_config_id(fit_config: dict[str, Any]) -> str:
+    """Return the stable short hash for a resolved fit configuration."""
+    payload = json.dumps(fit_config, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:8]

@@ -13,7 +13,7 @@ from iminuit import Minuit
 
 from src.physics.models import ModelSpec, background_model, signal_model
 from src.physics.pdg import UPSILON_1S_MASS_GEV
-from src.utils.config import load_yaml
+from src.utils.config import fit_config_id, load_yaml
 from src.utils.paths import config_path, data_dir, data_path, ensure_parent
 from src.utils.runlog import add_stage_stats, get_logger, safe_log
 
@@ -26,6 +26,7 @@ def fit_resonance(dataset_id: str) -> Path:
         raise FileNotFoundError(f"No gold dimuon files found under {gold_dir}")
 
     config = load_yaml(config_path("fits", "resonance_ladder.yaml"))
+    config_id = fit_config_id(config)
     masses_parts: list[np.ndarray] = []
     selection_ids: set[str] = set()
     for file in files:
@@ -53,6 +54,7 @@ def fit_resonance(dataset_id: str) -> Path:
         if entries == 0:
             continue
         row = fit_masses(resonance, fit_config, masses, selection_id, config)
+        row["fit_config_id"] = config_id
         rows.append(row)
         reasons = _fit_validity_reasons(row)
         if reasons:

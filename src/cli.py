@@ -13,8 +13,8 @@ from src.dq.checks import run_dq
 from src.gold.dimuon import build_gold
 from src.physics.fitting import fit_resonance
 from src.silver.build import build_silver
-from src.utils.config import dataset_config
-from src.utils.paths import configured_data_path, data_path, ensure_parent
+from src.utils.config import dataset_config, fit_config_id, load_yaml
+from src.utils.paths import config_path, configured_data_path, data_path, ensure_parent
 from src.utils.runlog import (
     begin_stage,
     configure_logging,
@@ -197,11 +197,19 @@ def _run_summary(dataset_id: str, results: dict[str, StageResult], total: float)
             f"dataset_id: {dataset_id}",
             f"overall_status: {overall}",
             f"total_wall_time: {format_duration(total)}",
+            f"fit_config_id: {_fit_config_id()}",
             f"results: {data_path('results')}",
             f"dq_report: {data_path('results') / 'dq_report.json'}",
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def _fit_config_id() -> str:
+    try:
+        return fit_config_id(load_yaml(config_path("fits", "resonance_ladder.yaml")))
+    except Exception:  # noqa: BLE001
+        return "unknown"
 
 
 def _emit_summary(summary: str) -> None:

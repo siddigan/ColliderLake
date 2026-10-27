@@ -129,3 +129,4 @@ fits:
 
     assert list(fits["resonance"]) == ["jpsi"]
     assert fits.iloc[0]["status"] == "valid"
+    assert len(str(fits.iloc[0]["fit_config_id"])) == 8
