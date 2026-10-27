@@ -58,6 +58,7 @@ def _root_to_parquet(
     identity_mode = config.get("event_identity", "native")
     written = 0
     event_offset = 0
+    estimated_batch_size = 0
     logger = get_logger("bronze")
     started = time.monotonic()
     with uproot.open(source) as root_file:
@@ -73,6 +74,8 @@ def _root_to_parquet(
             if max_batches is not None and batch_index >= max_batches:
                 break
             batch_size = _batch_size(arrays)
+            if estimated_batch_size == 0:
+                estimated_batch_size = batch_size
             base = _base_columns(
                 dataset_id=config["dataset_id"],
                 source=source,
@@ -97,7 +100,7 @@ def _root_to_parquet(
             elapsed = time.monotonic() - started
             throughput = event_offset / elapsed if elapsed > 0.0 else 0.0
             eta = (total_entries - event_offset) / throughput if throughput > 0.0 else 0.0
-            total_batches = math.ceil(total_entries / max(batch_size, 1))
+            total_batches = math.ceil(total_entries / max(estimated_batch_size, 1))
             safe_log(
                 logger,
                 logging.INFO,
@@ -239,6 +242,8 @@ def _write_muons(
                 }
             )
             for branch, column in MUON_BRANCHES.items():
+                if branch not in arrays:
+                    continue
                 values = jagged[branch]
                 row[column] = values[event_idx][muon_idx] if muon_idx < len(values[event_idx]) else None
             rows.append(row)

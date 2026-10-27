@@ -1,0 +1,6 @@
+profiles:
+  reduced:
+    required_columns: []
+  nanoaod_full:
+    required_columns:
+      - Muon_pfRelIso04_all
