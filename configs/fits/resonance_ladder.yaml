@@ -21,7 +21,7 @@ fits:
     pdg_masses: [9.4603, 10.0233, 10.3552]
   z:
     n_bins: 100
-    window: [70.0, 110.0]
+    window: [86.0, 96.0] # core window: full-window fit biased low; FSR tail is the leading HYPOTHESIS, attribution pending residual checks — not established. Double-sided CB for jpsi = future refinement, do NOT implement.
     signal: breit_wigner_conv_gaussian
     background: exponential
     pdg_mass: 91.1876

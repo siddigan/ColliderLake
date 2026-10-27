@@ -23,3 +23,8 @@ def test_fit_config_id_is_stable_and_short():
     fit_config = load_yaml("configs/fits/resonance_ladder.yaml")
     assert fit_config_id(fit_config) == fit_config_id(fit_config)
     assert len(fit_config_id(fit_config)) == 8
+
+
+def test_z_fit_window_is_core_window():
+    fit_config = load_yaml("configs/fits/resonance_ladder.yaml")
+    assert fit_config["fits"]["z"]["window"] == [86.0, 96.0]
