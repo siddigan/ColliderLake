@@ -116,6 +116,10 @@ cause, rerun that stage explicitly, for example:
 uv run python -m src.cli run --dataset run2012bc_doublemuparked --stage silver
 ```
 
+Progress logging is written to stderr. Add `--verbose` for debug records or
+`--quiet` for warnings and errors only; if both are supplied, `--quiet` wins.
+The same options are available on `clam` commands.
+
 ## 7. Audit the final result
 
 ```powershell

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import logging
+import math
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -9,6 +12,7 @@ import pandas as pd
 from src.acquire.local import manifest_entries
 from src.utils.config import dataset_config
 from src.utils.paths import data_dir, data_path, ensure_parent
+from src.utils.runlog import add_stage_stats, format_duration, get_logger, safe_log
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
 NATIVE_KEYS = ["run", "luminosityBlock", "event"]
@@ -54,8 +58,11 @@ def _root_to_parquet(
     identity_mode = config.get("event_identity", "native")
     written = 0
     event_offset = 0
+    logger = get_logger("bronze")
+    started = time.monotonic()
     with uproot.open(source) as root_file:
         tree = root_file["Events"]
+        total_entries = int(tree.num_entries)
         available = set(tree.keys())
         branches = [branch for branch in requested if branch in available]
         if identity_mode == "native":
@@ -76,10 +83,34 @@ def _root_to_parquet(
                 event_offset=event_offset,
             )
             part = f"{source.stem}_part_{batch_index:04d}.parquet"
-            _write_events(base, arrays, config["dataset_id"], part)
-            _write_muons(base, arrays, config["dataset_id"], part)
+            event_rows = _write_events(base, arrays, config["dataset_id"], part)
+            muon_rows = _write_muons(base, arrays, config["dataset_id"], part)
             event_offset += batch_size
             written += 1
+            add_stage_stats(
+                "bronze",
+                batches=1,
+                rows_out=event_rows + muon_rows,
+                events=event_rows,
+                muons=muon_rows,
+            )
+            elapsed = time.monotonic() - started
+            throughput = event_offset / elapsed if elapsed > 0.0 else 0.0
+            eta = (total_entries - event_offset) / throughput if throughput > 0.0 else 0.0
+            total_batches = math.ceil(total_entries / max(batch_size, 1))
+            safe_log(
+                logger,
+                logging.INFO,
+                "batch %d/~%d | events %s/%s (%.1f%%) | %.0f ev/s | elapsed %s | ETA ~%s",
+                batch_index + 1,
+                total_batches,
+                f"{event_offset:,}",
+                f"{total_entries:,}",
+                100.0 * event_offset / total_entries if total_entries else 0.0,
+                throughput,
+                format_duration(elapsed),
+                format_duration(eta),
+            )
     return written
 
 
@@ -89,6 +120,8 @@ def _tabular_to_parquet(
     manifest: dict[str, Any],
     config: dict[str, Any],
 ) -> int:
+    logger = get_logger("bronze")
+    started = time.monotonic()
     identity_mode = config.get("event_identity", "native")
     arrays = {column: frame[column].to_numpy() for column in frame.columns}
     base = _base_columns(
@@ -101,8 +134,26 @@ def _tabular_to_parquet(
         event_offset=0,
     )
     part = f"{source.stem}_part_0000.parquet"
-    _write_events(base, arrays, config["dataset_id"], part)
-    _write_muons(base, arrays, config["dataset_id"], part)
+    event_rows = _write_events(base, arrays, config["dataset_id"], part)
+    muon_rows = _write_muons(base, arrays, config["dataset_id"], part)
+    add_stage_stats(
+        "bronze",
+        batches=1,
+        rows_out=event_rows + muon_rows,
+        events=event_rows,
+        muons=muon_rows,
+    )
+    elapsed = time.monotonic() - started
+    throughput = event_rows / elapsed if elapsed > 0.0 else 0.0
+    safe_log(
+        logger,
+        logging.INFO,
+        "batch 1/~1 | events %s/%s (100.0%%) | %.0f ev/s | elapsed %s | ETA ~0.0s",
+        f"{event_rows:,}",
+        f"{event_rows:,}",
+        throughput,
+        format_duration(elapsed),
+    )
     return 1
 
 
@@ -143,7 +194,7 @@ def _write_events(
     arrays: dict[str, Any],
     dataset_id: str,
     part: str,
-) -> None:
+) -> int:
     events = base.copy()
     for name, values in arrays.items():
         if name in MUON_BRANCHES or name in NATIVE_KEYS or name == "nMuon":
@@ -152,6 +203,7 @@ def _write_events(
             events[name] = values
     path = data_path("bronze", f"dataset={dataset_id}", "events") / part
     events.to_parquet(ensure_parent(path), index=False)
+    return len(events)
 
 
 def _write_muons(
@@ -159,7 +211,7 @@ def _write_muons(
     arrays: dict[str, Any],
     dataset_id: str,
     part: str,
-) -> None:
+) -> int:
     rows: list[dict[str, Any]] = []
     batch_size = len(base)
     jagged = {branch: _jagged(arrays.get(branch), batch_size) for branch in MUON_BRANCHES}
@@ -193,6 +245,7 @@ def _write_muons(
     muons = pd.DataFrame(rows)
     path = data_path("bronze", f"dataset={dataset_id}", "muons") / part
     muons.to_parquet(ensure_parent(path), index=False)
+    return len(muons)
 
 
 def _batch_size(arrays: dict[str, Any]) -> int:

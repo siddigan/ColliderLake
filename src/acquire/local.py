@@ -2,17 +2,20 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from src.utils.config import dataset_config
 from src.utils.paths import configured_data_path, data_root, ensure_parent
+from src.utils.runlog import add_stage_stats, format_size, get_logger, safe_log
 
 DATA_EXTENSIONS = {".root", ".parquet", ".csv"}
 
 
 def acquire_dataset(dataset_id: str) -> Path:
+    logger = get_logger("acquire")
     config = dataset_config(dataset_id)
     raw_dir = configured_data_path(config.get("local_path", f"raw/{dataset_id}"))
     raw_dir.mkdir(parents=True, exist_ok=True)
@@ -21,6 +24,10 @@ def acquire_dataset(dataset_id: str) -> Path:
         raise FileNotFoundError(
             f"No local data files found for {dataset_id}. Place ROOT files in {raw_dir}."
         )
+
+    add_stage_stats("acquire", files=len(files), rows_out=len(files))
+    for path in files:
+        safe_log(logger, logging.INFO, "file found: %s (%s)", path.name, format_size(path.stat().st_size))
 
     manifest = {
         "dataset_id": dataset_id,
@@ -54,10 +61,14 @@ def manifest_entries(dataset_id: str) -> list[tuple[Path, dict[str, Any]]]:
 
 
 def _file_entry(path: Path) -> dict[str, Any]:
+    logger = get_logger("acquire")
+    safe_log(logger, logging.INFO, "hashing %s, ~1 min", format_size(path.stat().st_size))
+    digest = _sha256(path)
+    safe_log(logger, logging.INFO, "hashed %s: %s", path.name, digest)
     return {
         "name": path.name,
         "size_bytes": path.stat().st_size,
-        "sha256": _sha256(path),
+        "sha256": digest,
     }
 
 

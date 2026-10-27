@@ -11,13 +11,15 @@ from src.physics.muons import delta_r, pair_kinematics
 from src.physics.pdg import MUON_MASS_GEV
 from src.utils.config import selection_for_dataset
 from src.utils.paths import data_dir, data_path, ensure_parent
+from src.utils.runlog import add_stage_stats, get_logger, safe_log
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
-LOGGER = logging.getLogger(__name__)
+LOGGER = get_logger("gold")
 _LOGGED_GLOBAL_MUON_NOOP = False
 
 
 def build_gold(dataset_id: str) -> Path:
+    logger = get_logger("gold")
     _, selection, sel_id = selection_for_dataset(dataset_id)
     output_dir = data_dir("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
     silver_events_dir = data_path("silver", f"dataset={dataset_id}", "events")
@@ -35,6 +37,21 @@ def build_gold(dataset_id: str) -> Path:
             output["pair_idx"] = output["pair_idx"].astype("int32")
         # TODO(awkward vectorization, Phase 1): replace pandas grouping for full-stat runs.
         output.to_parquet(ensure_parent(output_dir / event_file.name), index=False)
+        events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if not output.empty else 0
+        if output.empty:
+            mass_range = "n/a"
+        else:
+            mass_range = f"{output['mass'].min():.6g}–{output['mass'].max():.6g}"
+        safe_log(
+            logger,
+            logging.INFO,
+            "part %s | events with >=2 OS muons %s | pairs built %s | mass %s",
+            event_file.name,
+            f"{events_with_pairs:,}",
+            f"{len(output):,}",
+            mass_range,
+        )
+        add_stage_stats("gold", batches=1, rows_out=len(output), events=events_with_pairs)
         written += 1
     if written == 0:
         raise FileNotFoundError(f"No silver event/muon file pairs found for {dataset_id}")
@@ -143,7 +160,7 @@ def _passes_muon(muon: dict[str, Any], config: dict[str, Any]) -> bool:
         return False
     if quality == "global_muon":
         if not _LOGGED_GLOBAL_MUON_NOOP:
-            LOGGER.info("quality=global_muon: no-op for reduced 2012 format")
+            safe_log(LOGGER, logging.INFO, "quality=global_muon: no-op for reduced 2012 format")
             _LOGGED_GLOBAL_MUON_NOOP = True
         return True
     return True

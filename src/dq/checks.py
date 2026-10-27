@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -11,12 +12,14 @@ import pandas as pd
 from src.physics.pdg import MUON_MASS_GEV
 from src.utils.config import dataset_config
 from src.utils.paths import data_dir, data_path, ensure_parent
+from src.utils.runlog import get_logger, safe_log
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
 ROW_TOLERANCE = 0.05
 
 
 def run_dq(dataset_id: str, layer: str, table_path: Path) -> dict[str, Any]:
+    logger = get_logger(layer)
     files = _parquet_files(table_path)
     report = {
         "dataset_id": dataset_id,
@@ -38,7 +41,15 @@ def run_dq(dataset_id: str, layer: str, table_path: Path) -> dict[str, Any]:
     _check_row_count_history(report)
     append_report(report)
     if not report["passed"]:
+        safe_log(
+            logger,
+            logging.ERROR,
+            "DQ %s FAIL | %s | halting",
+            layer,
+            "; ".join(report["failures"]),
+        )
         raise RuntimeError(f"DQ failed for {dataset_id} {layer}: {report['failures']}")
+    safe_log(logger, logging.INFO, "DQ %s PASS | %d checks", layer, _check_count(layer))
     return report
 
 
@@ -133,3 +144,7 @@ def _require(condition: bool, message: str, report: dict[str, Any]) -> None:
     if not bool(condition):
         report["passed"] = False
         report["failures"].append(message)
+
+
+def _check_count(layer: str) -> int:
+    return {"bronze": 6, "silver": 7, "gold": 6}.get(layer, 0)

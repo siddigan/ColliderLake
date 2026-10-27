@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import logging
 import math
 from pathlib import Path
 from typing import Any
@@ -14,9 +15,11 @@ from src.physics.models import ModelSpec, background_model, signal_model
 from src.physics.pdg import UPSILON_1S_MASS_GEV
 from src.utils.config import load_yaml
 from src.utils.paths import config_path, data_dir, data_path, ensure_parent
+from src.utils.runlog import add_stage_stats, get_logger, safe_log
 
 
 def fit_resonance(dataset_id: str) -> Path:
+    logger = get_logger("fit")
     gold_dir = data_path("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
     files = sorted(gold_dir.rglob("*.parquet"))
     if not files:
@@ -35,9 +38,43 @@ def fit_resonance(dataset_id: str) -> Path:
     rows: list[dict[str, Any]] = []
     for resonance, fit_config in config["fits"].items():
         window = tuple(float(value) for value in fit_config["window"])
-        if _count_in_window(masses, window) == 0:
+        entries = _count_in_window(masses, window)
+        safe_log(
+            logger,
+            logging.INFO,
+            "pre-fit %s | window=[%g, %g] | entries=%s | model=%s + %s",
+            resonance,
+            window[0],
+            window[1],
+            f"{entries:,}",
+            fit_config["signal"],
+            fit_config["background"],
+        )
+        if entries == 0:
             continue
-        rows.append(fit_masses(resonance, fit_config, masses, selection_id, config))
+        row = fit_masses(resonance, fit_config, masses, selection_id, config)
+        rows.append(row)
+        reasons = _fit_validity_reasons(row)
+        if reasons:
+            safe_log(
+                logger,
+                logging.WARNING,
+                "INVALID %s | reasons=%s",
+                resonance,
+                ", ".join(reasons),
+            )
+        else:
+            safe_log(
+                logger,
+                logging.INFO,
+                "fit %s PASS | mass=%.6g +/- %.6g | yield=%.6g | status=%s",
+                resonance,
+                row["mass_fit"],
+                row["mass_stat_unc"],
+                row["signal_yield"],
+                row["status"],
+            )
+        add_stage_stats("fit", batches=1, rows_out=1)
 
     if not rows:
         raise RuntimeError(f"No configured resonance windows contained data for {dataset_id}")
@@ -199,6 +236,32 @@ def _chi2(observed: np.ndarray, expected: np.ndarray) -> float:
 
 def _count_in_window(masses: np.ndarray, window: tuple[float, float]) -> int:
     return int(np.sum(np.isfinite(masses) & (masses >= window[0]) & (masses <= window[1])))
+
+
+def _fit_validity_reasons(row: dict[str, Any]) -> list[str]:
+    reasons: list[str] = []
+    if row.get("status") != "valid":
+        reasons.append(f"status={row.get('status')}")
+    convergence = row.get(
+        "converged",
+        row.get("is_valid", row.get("convergence", row.get("status") == "valid")),
+    )
+    if not bool(convergence):
+        reasons.append("convergence=false")
+    mass_fit = row.get("mass_fit")
+    mass_unc = row.get("mass_stat_unc")
+    if not isinstance(mass_fit, (int, float)) or not math.isfinite(float(mass_fit)):
+        reasons.append("mass_fit=nonfinite")
+    if not isinstance(mass_unc, (int, float)) or not math.isfinite(float(mass_unc)):
+        reasons.append("mass_stat_unc=nonfinite")
+    elif float(mass_unc) <= 0.0:
+        reasons.append("mass_stat_unc<=0")
+    signal_yield = row.get("signal_yield")
+    if not isinstance(signal_yield, (int, float)) or not math.isfinite(float(signal_yield)):
+        reasons.append("signal_yield=nonfinite")
+    elif float(signal_yield) <= 0.0:
+        reasons.append("signal_yield<=0")
+    return reasons
 
 
 def _minuit_values(minuit: Minuit) -> dict[str, float]:

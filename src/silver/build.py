@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -9,10 +10,12 @@ import pandas as pd
 
 from src.utils.config import dataset_config
 from src.utils.paths import configured_data_path, data_dir, data_path, ensure_parent
+from src.utils.runlog import add_stage_stats, get_logger, safe_log
 
 
 def build_silver(dataset_id: str) -> Path:
     config = dataset_config(dataset_id)
+    logger = get_logger("silver")
     metrics = {
         "events_before": 0,
         "events_after": 0,
@@ -28,15 +31,42 @@ def build_silver(dataset_id: str) -> Path:
         out_events = data_path("silver", f"dataset={dataset_id}", "events") / event_file.name
         kept_events.to_parquet(ensure_parent(out_events), index=False)
 
+        muons_before = 0
+        muons_after_eta = 0
         muon_file = data_path("bronze", f"dataset={dataset_id}", "muons") / event_file.name
         if muon_file.exists():
             muons = pd.read_parquet(muon_file)
             cleaned_before_eta = _clean_muons(_filter_to_events(muons, kept_events))
             cleaned = cleaned_before_eta[cleaned_before_eta["eta"].abs() <= 2.4].reset_index(drop=True)
+            muons_before = len(cleaned_before_eta)
+            muons_after_eta = len(cleaned)
             metrics["muons_before"] += len(cleaned_before_eta)
             metrics["muons_after_eta"] += len(cleaned)
             out_muons = data_path("silver", f"dataset={dataset_id}", "muons") / event_file.name
             cleaned.to_parquet(ensure_parent(out_muons), index=False)
+        certified_fraction = len(kept_events) / len(events) if len(events) else 0.0
+        eta_drop_fraction = (
+            (muons_before - muons_after_eta) / muons_before if muons_before else 0.0
+        )
+        safe_log(
+            logger,
+            logging.INFO,
+            "part %s | events %s -> %s certified (%.1f%%) | muons %s -> %s after eta cleaning (%.1f%% drop)",
+            event_file.name,
+            f"{len(events):,}",
+            f"{len(kept_events):,}",
+            100.0 * certified_fraction,
+            f"{muons_before:,}",
+            f"{muons_after_eta:,}",
+            100.0 * eta_drop_fraction,
+        )
+        add_stage_stats(
+            "silver",
+            batches=1,
+            rows_out=len(kept_events) + muons_after_eta,
+            events=len(kept_events),
+            muons=muons_after_eta,
+        )
     if metrics["events_before"] == 0:
         raise FileNotFoundError(f"No bronze event files found for {dataset_id}")
     metrics["certified_fraction"] = metrics["events_after"] / metrics["events_before"]
