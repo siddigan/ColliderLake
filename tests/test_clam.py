@@ -6,19 +6,20 @@ from src.acquire.clam import (
     download_file,
     resolve_target,
 )
+from src.utils.paths import data_path
 
 
-def test_resolve_registered_2012_target():
+def test_resolve_registered_2012_target(tmp_path, monkeypatch):
+    monkeypatch.setenv("COLLIDERLAKE_DATA_ROOT", str(tmp_path / "artifacts"))
     target = resolve_target("run2012bc_doublemuparked", "Run2012BC_DoubleMuParked_Muons.root")
     assert target.expected_size == 2244449133
     assert target.url.endswith("/Run2012BC_DoubleMuParked_Muons.root")
     assert target.xrootd_url.startswith("root://eospublic.cern.ch/")
-    assert target.output_path.as_posix().endswith(
-        "data/raw/run2012bc_doublemuparked/Run2012BC_DoubleMuParked_Muons.root"
-    )
+    assert target.output_path == data_path("raw", "run2012bc_doublemuparked") / target.name
 
 
-def test_aria2c_command_is_resume_safe():
+def test_aria2c_command_is_resume_safe(tmp_path, monkeypatch):
+    monkeypatch.setenv("COLLIDERLAKE_DATA_ROOT", str(tmp_path / "artifacts"))
     target = resolve_target("run2012bc_doublemuparked", "Run2012BC_DoubleMuParked_Muons.root")
     command = _aria2c_command(target)
     assert "-c" in command
@@ -29,6 +30,7 @@ def test_aria2c_command_is_resume_safe():
 
 def test_auto_download_falls_back_to_native_when_aria2_missing(monkeypatch, tmp_path):
     monkeypatch.setenv("COLLIDERLAKE_ROOT", str(tmp_path))
+    monkeypatch.setenv("COLLIDERLAKE_DATA_ROOT", str(tmp_path / "artifacts"))
     shutil.copytree("configs", tmp_path / "configs")
     calls = []
 

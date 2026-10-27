@@ -131,6 +131,7 @@ gold.dimuon
   mu2_pt, mu2_eta, mu2_phi, mu2_iso, mu2_charge   float64/int8
   trigger_path      string    -- which path admitted this pair
   selection_id      string    -- config hash: which cuts produced this row
+  pair_idx          int32     -- canonical within-event pair index
 ```
 
 `selection_id` = short hash of the resolved selection YAML. Every gold row is

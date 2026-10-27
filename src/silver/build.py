@@ -8,12 +8,17 @@ import numpy as np
 import pandas as pd
 
 from src.utils.config import dataset_config
-from src.utils.paths import data_path, ensure_parent, project_root
+from src.utils.paths import configured_data_path, data_path, ensure_parent
 
 
 def build_silver(dataset_id: str) -> Path:
     config = dataset_config(dataset_id)
-    metrics = {"events_before": 0, "events_after": 0}
+    metrics = {
+        "events_before": 0,
+        "events_after": 0,
+        "muons_before": 0,
+        "muons_after_eta": 0,
+    }
     for event_file in sorted(data_path("bronze", f"dataset={dataset_id}", "events").glob("*.parquet")):
         events = pd.read_parquet(event_file)
         certified = _apply_certification(events, config)
@@ -26,12 +31,20 @@ def build_silver(dataset_id: str) -> Path:
         muon_file = data_path("bronze", f"dataset={dataset_id}", "muons") / event_file.name
         if muon_file.exists():
             muons = pd.read_parquet(muon_file)
-            cleaned = _clean_muons(_filter_to_events(muons, kept_events))
+            cleaned_before_eta = _clean_muons(_filter_to_events(muons, kept_events))
+            cleaned = cleaned_before_eta[cleaned_before_eta["eta"].abs() <= 2.4].reset_index(drop=True)
+            metrics["muons_before"] += len(cleaned_before_eta)
+            metrics["muons_after_eta"] += len(cleaned)
             out_muons = data_path("silver", f"dataset={dataset_id}", "muons") / event_file.name
             cleaned.to_parquet(ensure_parent(out_muons), index=False)
     if metrics["events_before"] == 0:
         raise FileNotFoundError(f"No bronze event files found for {dataset_id}")
     metrics["certified_fraction"] = metrics["events_after"] / metrics["events_before"]
+    metrics["eta_drop_fraction"] = (
+        (metrics["muons_before"] - metrics["muons_after_eta"]) / metrics["muons_before"]
+        if metrics["muons_before"]
+        else 0.0
+    )
     metrics_path = data_path("silver", f"dataset={dataset_id}") / "certification_metrics.json"
     metrics_path.write_text(json.dumps(metrics, indent=2, sort_keys=True), encoding="utf-8")
     return data_path("silver", f"dataset={dataset_id}")
@@ -45,7 +58,7 @@ def _apply_certification(frame: pd.DataFrame, config: dict[str, Any]) -> pd.Data
         output["certification_source"] = "prefiltered"
         return output
     if isinstance(certification, dict) and certification.get("golden_json_file"):
-        json_path = project_root() / certification["golden_json_file"]
+        json_path = configured_data_path(certification["golden_json_file"])
         if not json_path.exists():
             output["certified"] = False
             output["certification_source"] = "missing_golden_json"
@@ -55,7 +68,7 @@ def _apply_certification(frame: pd.DataFrame, config: dict[str, Any]) -> pd.Data
             _is_certified(int(run), int(lumi), intervals)
             for run, lumi in zip(output["run"], output["luminosityBlock"], strict=False)
         ]
-        output["certification_source"] = str(json_path.relative_to(project_root()))
+        output["certification_source"] = str(json_path.relative_to(data_path()))
         return output
     output["certified"] = True
     output["certification_source"] = "none"
@@ -82,7 +95,7 @@ def _clean_muons(frame: pd.DataFrame) -> pd.DataFrame:
         return frame.copy()
     output = frame.copy()
     mask = np.isfinite(output["pt"]) & (output["pt"] > 0.0)
-    mask &= np.isfinite(output["eta"]) & (output["eta"].abs() <= 2.4)
+    mask &= np.isfinite(output["eta"])
     mask &= np.isfinite(output["phi"])
     if "iso" in output.columns:
         iso = pd.to_numeric(output["iso"], errors="coerce")

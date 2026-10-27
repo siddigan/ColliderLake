@@ -1,0 +1,17 @@
+{
+  "created_at_utc": "2026-10-27T15:46:11.824345+00:00",
+  "dataset_id": "run2012bc_doublemuparked",
+  "doi": [
+    "10.7483/OPENDATA.CMS.YLIC.86ZZ",
+    "10.7483/OPENDATA.CMS.M5AD.Y3V3"
+  ],
+  "files": [
+    {
+      "name": "Run2012BC_DoubleMuParked_Muons.root",
+      "sha256": "f8a9d40dba9ee7131a4110f93b4e14a29f99255cbff777018848477f2f61b00b",
+      "size_bytes": 2244449133
+    }
+  ],
+  "local_path": "data\\raw\\run2012bc_doublemuparked",
+  "portal_record": 12341
+}

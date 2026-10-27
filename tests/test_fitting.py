@@ -4,6 +4,8 @@ import pytest
 
 from src.physics.fitting import fit_masses, fit_resonance
 from src.physics.pdg import JPSI_MASS_GEV, Z_MASS_GEV, Z_WIDTH_GEV
+from src.utils.paths import data_path
+from tests.fit_assertions import assert_valid_fit
 
 
 def test_gaussian_exponential_fit_recovers_jpsi_mass():
@@ -22,7 +24,7 @@ def test_gaussian_exponential_fit_recovers_jpsi_mass():
         },
         masses,
     )
-    assert result["status"] == "valid"
+    assert_valid_fit(result, JPSI_MASS_GEV, 0.05)
     assert abs(result["mass_fit"] - JPSI_MASS_GEV) < 3.0 * result["mass_stat_unc"]
     assert abs(result["mass_fit"] - JPSI_MASS_GEV) < 0.01
 
@@ -46,7 +48,7 @@ def test_voigtian_exponential_fit_recovers_z_mass():
         },
         masses,
     )
-    assert result["status"] == "valid"
+    assert_valid_fit(result, Z_MASS_GEV, 1.0)
     assert abs(result["mass_fit"] - Z_MASS_GEV) < 3.0 * result["mass_stat_unc"]
 
 
@@ -94,8 +96,9 @@ def test_gaussian_pull_calibration_over_seeded_toys():
 
 def test_fit_resonance_combines_gold_parts_before_fitting(tmp_path, monkeypatch):
     monkeypatch.setenv("COLLIDERLAKE_ROOT", str(tmp_path))
-    gold = tmp_path / "data/gold/analysis=resonance/dataset=toy/dimuon"
-    gold.mkdir(parents=True)
+    monkeypatch.setenv("COLLIDERLAKE_DATA_ROOT", str(tmp_path / "artifacts"))
+    gold = data_path("gold", "analysis=resonance", "dataset=toy", "dimuon")
+    gold.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(2468)
     for part in range(2):
         signal = rng.normal(JPSI_MASS_GEV, 0.03, 2500)

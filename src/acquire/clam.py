@@ -14,7 +14,7 @@ from typing import Any
 
 from src.acquire.local import acquire_dataset
 from src.utils.config import dataset_config
-from src.utils.paths import project_root
+from src.utils.paths import configured_data_path
 
 
 @dataclass(frozen=True)
@@ -73,7 +73,7 @@ def download_file(
 
 def resolve_target(dataset_id: str, filename: str) -> DownloadTarget:
     config = dataset_config(dataset_id)
-    raw_dir = project_root() / config.get("local_path", f"data/raw/{dataset_id}")
+    raw_dir = configured_data_path(config.get("local_path", f"raw/{dataset_id}"))
     for item in config.get("files", []):
         if item.get("name") == filename:
             return DownloadTarget(

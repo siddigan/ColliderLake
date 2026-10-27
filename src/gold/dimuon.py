@@ -31,6 +31,8 @@ def build_gold(dataset_id: str) -> Path:
         muons = pd.read_parquet(muon_file)
         rows = _build_pairs_for_part(events, muons, selection, sel_id)
         output = pd.DataFrame(rows)
+        if not output.empty:
+            output["pair_idx"] = output["pair_idx"].astype("int32")
         # TODO(awkward vectorization, Phase 1): replace pandas grouping for full-stat runs.
         output.to_parquet(ensure_parent(output_dir / event_file.name), index=False)
         written += 1
@@ -68,6 +70,7 @@ def _event_pairs(
     if admitted_by is None:
         return []
     selected = [_muon for _muon in muons if _passes_muon(_muon, selection.get("muon", {}))]
+    selected.sort(key=lambda item: int(item.get("muon_idx", 0)))
     rows: list[dict[str, Any]] = []
     for first, second in combinations(selected, 2):
         if selection.get("pair", {}).get("opposite_charge", True) and first["charge"] * second["charge"] >= 0:
@@ -91,6 +94,8 @@ def _event_pairs(
                 "run": int(event["run"]),
                 "luminosityBlock": int(event["luminosityBlock"]),
                 "event": int(event["event"]),
+                "mu1_idx": int(first.get("muon_idx", 0)),
+                "mu2_idx": int(second.get("muon_idx", 0)),
                 "mass": float(pair["mass"]),
                 "pt_pair": float(pair["pt_pair"]),
                 "rapidity": float(pair["rapidity"]),
@@ -110,8 +115,15 @@ def _event_pairs(
                 "identity_mode": event.get("identity_mode", "native"),
             }
         )
-    rows.sort(key=lambda item: item["pt_pair"], reverse=True)
+    rows.sort(
+        key=lambda item: (
+            -(item["mu1_pt"] + item["mu2_pt"]),
+            item["mu1_idx"],
+            item["mu2_idx"],
+        )
+    )
     for index, row in enumerate(rows):
+        row["pair_idx"] = index
         row["is_leading_pair"] = index == 0
     return rows
 

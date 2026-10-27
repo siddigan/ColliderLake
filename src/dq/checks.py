@@ -62,13 +62,14 @@ def _parquet_files(path: Path) -> list[Path]:
 
 
 def _check_keys(frame: pd.DataFrame, seen: set[tuple[Any, ...]], report: dict[str, Any]) -> None:
-    missing = [column for column in EVENT_KEYS if column not in frame.columns]
+    required = EVENT_KEYS + (["pair_idx"] if report["layer"] == "gold" else [])
+    missing = [column for column in required if column not in frame.columns]
     _require(not missing, f"missing key columns: {missing}", report)
     if missing:
         return
-    for column in EVENT_KEYS:
+    for column in required:
         _require(not frame[column].isna().any(), f"no nulls in {column}", report)
-    key_columns = EVENT_KEYS + (["muon_idx"] if "muon_idx" in frame.columns else [])
+    key_columns = required + (["muon_idx"] if "muon_idx" in frame.columns else [])
     for key in frame[key_columns].itertuples(index=False, name=None):
         _require(key not in seen, f"duplicate key: {key}", report)
         seen.add(key)
@@ -78,11 +79,12 @@ def _check_physics(frame: pd.DataFrame, layer: str, report: dict[str, Any]) -> N
     if "pt" in frame.columns:
         _require((np.isfinite(frame["pt"]) & (frame["pt"] > 0.0)).all(), "muon pt > 0", report)
     if "eta" in frame.columns:
-        _require(
-            (np.isfinite(frame["eta"]) & (frame["eta"].abs() <= 2.4)).all(),
-            "muon |eta| <= 2.4",
-            report,
-        )
+        _require(np.isfinite(frame["eta"]).all(), "finite muon eta", report)
+        if layer == "silver":
+            _require((frame["eta"].abs() <= 2.4).all(), "muon |eta| <= 2.4", report)
+    for column in ("phi", "mass"):
+        if column in frame.columns:
+            _require(np.isfinite(frame[column]).all(), f"finite muon {column}", report)
     if "iso" in frame.columns:
         iso = pd.to_numeric(frame["iso"], errors="coerce")
         _require((iso.isna() | (np.isfinite(iso) & (iso >= 0.0))).all(), "muon iso >= 0", report)
