@@ -1,0 +1,9 @@
+analysis: resonance
+default_n_bins: 80
+fits:
+  jpsi:
+    n_bins: 80
+    window: [2.8, 3.4]
+    signal: gaussian
+    background: exponential
+    pdg_mass: 3.0969

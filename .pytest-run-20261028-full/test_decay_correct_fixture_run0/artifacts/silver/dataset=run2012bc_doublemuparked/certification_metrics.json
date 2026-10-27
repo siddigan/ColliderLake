@@ -1,0 +1,8 @@
+{
+  "certified_fraction": 1.0,
+  "eta_drop_fraction": 0.045454545454545456,
+  "events_after": 20000,
+  "events_before": 20000,
+  "muons_after_eta": 42000,
+  "muons_before": 44000
+}

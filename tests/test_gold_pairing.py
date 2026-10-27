@@ -7,7 +7,7 @@ import pytest
 
 from src.dq.checks import run_dq
 from src.gold.dimuon import _event_pairs
-from src.utils.paths import data_path
+from src.utils.paths import data_path, ensure_parent
 
 SELECTION = {
     "muon": {"pt_min": 3.0, "abs_eta_max": 2.4},
@@ -26,7 +26,7 @@ def test_three_muon_event_has_two_canonical_pairs_and_gold_gate_passes(tmp_path,
     assert rows[0]["pt_pair"] > rows[1]["pt_pair"]
     assert all(row["mu1_idx"] < row["mu2_idx"] for row in rows)
 
-    path = data_path("gold", "analysis=resonance", "dataset=toy", "dimuon", "part.parquet")
+    path = ensure_parent(data_path("gold", "analysis=resonance", "dataset=toy", "dimuon", "part.parquet"))
     pd.DataFrame(rows).to_parquet(path, index=False)
     report = run_dq("toy", "gold", path)
     assert report["passed"]
@@ -43,7 +43,7 @@ def test_gold_gate_rejects_true_duplicate_pair_key(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
     rows = _event_pairs(_event(3), _muons([10.0, 8.0, 4.0], [1, -1, -1]), SELECTION, "deadbeef")
     duplicate = pd.DataFrame([rows[0], rows[0]])
-    path = data_path("gold", "analysis=resonance", "dataset=toy", "dimuon", "duplicate.parquet")
+    path = ensure_parent(data_path("gold", "analysis=resonance", "dataset=toy", "dimuon", "duplicate.parquet"))
     duplicate.to_parquet(path, index=False)
     with pytest.raises(RuntimeError, match="duplicate key"):
         run_dq("toy", "gold", path)

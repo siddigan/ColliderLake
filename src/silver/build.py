@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from src.utils.config import dataset_config
-from src.utils.paths import configured_data_path, data_path, ensure_parent
+from src.utils.paths import configured_data_path, data_dir, data_path, ensure_parent
 
 
 def build_silver(dataset_id: str) -> Path:
@@ -45,9 +45,9 @@ def build_silver(dataset_id: str) -> Path:
         if metrics["muons_before"]
         else 0.0
     )
-    metrics_path = data_path("silver", f"dataset={dataset_id}") / "certification_metrics.json"
-    metrics_path.write_text(json.dumps(metrics, indent=2, sort_keys=True), encoding="utf-8")
-    return data_path("silver", f"dataset={dataset_id}")
+    metrics_path = data_dir("silver", f"dataset={dataset_id}") / "certification_metrics.json"
+    ensure_parent(metrics_path).write_text(json.dumps(metrics, indent=2, sort_keys=True), encoding="utf-8")
+    return data_dir("silver", f"dataset={dataset_id}")
 
 
 def _apply_certification(frame: pd.DataFrame, config: dict[str, Any]) -> pd.DataFrame:

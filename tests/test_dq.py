@@ -6,12 +6,12 @@ import pytest
 
 from src.dq.checks import run_dq
 from src.silver.build import build_silver
-from src.utils.paths import data_path
+from src.utils.paths import data_dir, data_path, ensure_parent
 
 
 def test_dq_passes_good_muons(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    path = data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet")
+    path = ensure_parent(data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet"))
     _write_parquet(
         path,
         {
@@ -31,7 +31,7 @@ def test_dq_passes_good_muons(tmp_path, monkeypatch):
 
 def test_dq_fails_bad_muon_pt(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    path = data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet")
+    path = ensure_parent(data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet"))
     _write_parquet(
         path,
         {
@@ -50,7 +50,7 @@ def test_dq_fails_bad_muon_pt(tmp_path, monkeypatch):
 
 def test_dq_fails_certification_fraction_band(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    path = data_path("silver", "dataset=run2012bc_doublemuparked", "events", "part.parquet")
+    path = ensure_parent(data_path("silver", "dataset=run2012bc_doublemuparked", "events", "part.parquet"))
     _write_parquet(
         path,
         {
@@ -60,7 +60,7 @@ def test_dq_fails_certification_fraction_band(tmp_path, monkeypatch):
             "event": [1],
         },
     )
-    metrics = data_path("silver", "dataset=run2012bc_doublemuparked") / "certification_metrics.json"
+    metrics = data_dir("silver", "dataset=run2012bc_doublemuparked") / "certification_metrics.json"
     metrics.write_text(
         json.dumps({"events_before": 10, "events_after": 5, "certified_fraction": 0.5}),
         encoding="utf-8",
@@ -71,7 +71,7 @@ def test_dq_fails_certification_fraction_band(tmp_path, monkeypatch):
 
 def test_dq_fails_row_count_history_delta(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    path = data_path("bronze", "dataset=run2012bc_doublemuparked", "events", "part.parquet")
+    path = ensure_parent(data_path("bronze", "dataset=run2012bc_doublemuparked", "events", "part.parquet"))
     _write_parquet(
         path,
         {
@@ -97,8 +97,8 @@ def test_dq_fails_row_count_history_delta(tmp_path, monkeypatch):
 
 def test_eta_is_structural_in_bronze_and_cleaned_per_muon_in_silver(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    events = data_path("bronze", "dataset=run2012bc_doublemuparked", "events", "part.parquet")
-    muons = data_path("bronze", "dataset=run2012bc_doublemuparked", "muons", "part.parquet")
+    events = ensure_parent(data_path("bronze", "dataset=run2012bc_doublemuparked", "events", "part.parquet"))
+    muons = ensure_parent(data_path("bronze", "dataset=run2012bc_doublemuparked", "muons", "part.parquet"))
     _write_parquet(
         events,
         {

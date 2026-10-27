@@ -1,0 +1,21 @@
+[
+  {
+    "background_yield": 8.793605297707785e-06,
+    "chi2": 9.967732846682351e-05,
+    "delta_pdg_sigma": 0.07852227707142266,
+    "mass_fit": 3.1040811258957093,
+    "mass_stat_unc": 0.0914533577417429,
+    "n_bins": 100,
+    "ndf": 93,
+    "pdg_mass": 3.0969,
+    "resonance": "jpsi",
+    "selection_id": "53cf81e2",
+    "signal_yield": 2.991664967051616,
+    "status": "valid",
+    "width": 0.0009726962517215719,
+    "window": [
+      2.8,
+      3.4
+    ]
+  }
+]

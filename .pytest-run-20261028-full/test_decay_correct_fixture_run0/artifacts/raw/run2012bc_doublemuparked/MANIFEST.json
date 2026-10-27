@@ -1,0 +1,17 @@
+{
+  "created_at_utc": "2026-10-27T21:23:08.604601+00:00",
+  "dataset_id": "run2012bc_doublemuparked",
+  "doi": [
+    "10.7483/OPENDATA.CMS.YLIC.86ZZ",
+    "10.7483/OPENDATA.CMS.M5AD.Y3V3"
+  ],
+  "files": [
+    {
+      "name": "fixture.root",
+      "sha256": "1b7ea9339763e2044596124956113d0cb18b3610eddcae73e32f28c3cfce285d",
+      "size_bytes": 820870
+    }
+  ],
+  "local_path": "raw/run2012bc_doublemuparked",
+  "portal_record": 12341
+}

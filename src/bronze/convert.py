@@ -8,7 +8,7 @@ import pandas as pd
 
 from src.acquire.local import manifest_entries
 from src.utils.config import dataset_config
-from src.utils.paths import data_path, ensure_parent
+from src.utils.paths import data_dir, data_path, ensure_parent
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
 NATIVE_KEYS = ["run", "luminosityBlock", "event"]
@@ -36,7 +36,7 @@ def build_bronze(dataset_id: str, max_batches: int | None = None) -> Path:
             written += _tabular_to_parquet(pd.read_csv(source), source, manifest, config)
     if written == 0:
         raise RuntimeError(f"No bronze files written for {dataset_id}")
-    return data_path("bronze", f"dataset={dataset_id}")
+    return data_dir("bronze", f"dataset={dataset_id}")
 
 
 def _root_to_parquet(

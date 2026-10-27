@@ -1,0 +1,27 @@
+[
+  {
+    "checked_at_utc": "2026-10-27T21:23:03.516124+00:00",
+    "dataset_id": "run2012bc_doublemuparked",
+    "failures": [],
+    "layer": "bronze",
+    "metrics": {},
+    "passed": true,
+    "rows": 4
+  },
+  {
+    "checked_at_utc": "2026-10-27T21:23:03.583775+00:00",
+    "dataset_id": "run2012bc_doublemuparked",
+    "failures": [],
+    "layer": "silver",
+    "metrics": {
+      "certified_fraction": 1.0,
+      "eta_drop_fraction": 0.3333333333333333,
+      "events_after": 1,
+      "events_before": 1,
+      "muons_after_eta": 2,
+      "muons_before": 3
+    },
+    "passed": true,
+    "rows": 3
+  }
+]

@@ -9,13 +9,13 @@ import pandas as pd
 from src.bronze.convert import build_bronze
 from src.cli import run_pipeline
 from src.physics.pdg import JPSI_MASS_GEV, MUON_MASS_GEV
-from src.utils.paths import data_path
+from src.utils.paths import data_dir, data_path, ensure_parent
 from tests.fit_assertions import assert_valid_fit
 
 
 def test_synthetic_identity_bronze_for_2012_six_branch_root(tmp_path, monkeypatch):
     _prepare_project_root(tmp_path, monkeypatch)
-    _write_synthetic_2012_root(data_path("raw", "run2012bc_doublemuparked", "sample.root"))
+    _write_synthetic_2012_root(ensure_parent(data_path("raw", "run2012bc_doublemuparked", "sample.root")))
 
     bronze_root = build_bronze("run2012bc_doublemuparked", max_batches=2)
     events = pd.read_parquet(bronze_root / "events/sample_part_0000.parquet")
@@ -29,7 +29,10 @@ def test_synthetic_identity_bronze_for_2012_six_branch_root(tmp_path, monkeypatc
 
 def test_bronze_conversion_speed_for_20k_event_root(tmp_path, monkeypatch):
     _prepare_project_root(tmp_path, monkeypatch)
-    _write_synthetic_2012_root(data_path("raw", "run2012bc_doublemuparked", "sample.root"), n_events=20_000)
+    _write_synthetic_2012_root(
+        ensure_parent(data_path("raw", "run2012bc_doublemuparked", "sample.root")),
+        n_events=20_000,
+    )
 
     start = time.monotonic()
     build_bronze("run2012bc_doublemuparked", max_batches=1)
@@ -40,7 +43,7 @@ def test_bronze_conversion_speed_for_20k_event_root(tmp_path, monkeypatch):
 
 def test_stage_all_completes_on_synthetic_2012_file(tmp_path, monkeypatch):
     _prepare_project_root(tmp_path, monkeypatch)
-    _write_synthetic_2012_root(data_path("raw", "run2012bc_doublemuparked", "sample.root"))
+    _write_synthetic_2012_root(ensure_parent(data_path("raw", "run2012bc_doublemuparked", "sample.root")))
 
     start = time.monotonic()
     run_pipeline("run2012bc_doublemuparked", "all", max_batches=3)
@@ -60,7 +63,7 @@ def _prepare_project_root(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("COLLIDERLAKE_ROOT", str(tmp_path))
     monkeypatch.setenv("COLLIDERLAKE_DATA_ROOT", str(tmp_path / "artifacts"))
     shutil.copytree("configs", tmp_path / "configs")
-    data_path("raw", "run2012bc_doublemuparked")
+    data_dir("raw", "run2012bc_doublemuparked")
 
 
 def _write_synthetic_2012_root(path: Path, n_events: int = 3) -> None:

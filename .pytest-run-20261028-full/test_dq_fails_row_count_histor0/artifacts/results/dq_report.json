@@ -1,0 +1,25 @@
+[
+  {
+    "checked_at_utc": "2026-10-27T21:23:03.378379+00:00",
+    "dataset_id": "run2012bc_doublemuparked",
+    "failures": [],
+    "layer": "bronze",
+    "metrics": {},
+    "passed": true,
+    "rows": 10
+  },
+  {
+    "checked_at_utc": "2026-10-27T21:23:03.410121+00:00",
+    "dataset_id": "run2012bc_doublemuparked",
+    "failures": [
+      "row count within 5% of previous successful run"
+    ],
+    "layer": "bronze",
+    "metrics": {
+      "previous_successful_rows": 10,
+      "row_count_delta_fraction": 1.0
+    },
+    "passed": false,
+    "rows": 20
+  }
+]

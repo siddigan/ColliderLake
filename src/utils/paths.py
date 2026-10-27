@@ -23,7 +23,11 @@ def config_path(*parts: str) -> Path:
 
 
 def data_path(*parts: str) -> Path:
-    path = data_root() / Path(*parts)
+    return data_root() / Path(*parts)
+
+
+def data_dir(*parts: str) -> Path:
+    path = data_path(*parts)
     path.mkdir(parents=True, exist_ok=True)
     return path
 

@@ -14,7 +14,7 @@ from typing import Any
 
 from src.acquire.local import acquire_dataset
 from src.utils.config import dataset_config
-from src.utils.paths import configured_data_path
+from src.utils.paths import configured_data_path, ensure_parent
 
 
 @dataclass(frozen=True)
@@ -226,6 +226,5 @@ def _sha256(path: Path) -> str:
 def write_diagnosis(dataset_id: str, filename: str) -> Path:
     metadata = target_metadata(dataset_id, filename)
     output = resolve_target(dataset_id, filename).output_path.parent / f"{filename}.diagnosis.json"
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(metadata, indent=2, sort_keys=True), encoding="utf-8")
+    ensure_parent(output).write_text(json.dumps(metadata, indent=2, sort_keys=True), encoding="utf-8")
     return output

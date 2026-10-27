@@ -4,7 +4,7 @@ import pytest
 
 from src.physics.fitting import fit_masses, fit_resonance
 from src.physics.pdg import JPSI_MASS_GEV, Z_MASS_GEV, Z_WIDTH_GEV
-from src.utils.paths import data_path
+from src.utils.paths import data_dir
 from tests.fit_assertions import assert_valid_fit
 
 
@@ -97,8 +97,7 @@ def test_gaussian_pull_calibration_over_seeded_toys():
 def test_fit_resonance_combines_gold_parts_before_fitting(tmp_path, monkeypatch):
     monkeypatch.setenv("COLLIDERLAKE_ROOT", str(tmp_path))
     monkeypatch.setenv("COLLIDERLAKE_DATA_ROOT", str(tmp_path / "artifacts"))
-    gold = data_path("gold", "analysis=resonance", "dataset=toy", "dimuon")
-    gold.mkdir(parents=True, exist_ok=True)
+    gold = data_dir("gold", "analysis=resonance", "dataset=toy", "dimuon")
     rng = np.random.default_rng(2468)
     for part in range(2):
         signal = rng.normal(JPSI_MASS_GEV, 0.03, 2500)

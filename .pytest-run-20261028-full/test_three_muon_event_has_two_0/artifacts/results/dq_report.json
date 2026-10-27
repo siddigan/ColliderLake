@@ -1,0 +1,11 @@
+[
+  {
+    "checked_at_utc": "2026-10-27T21:23:04.370255+00:00",
+    "dataset_id": "toy",
+    "failures": [],
+    "layer": "gold",
+    "metrics": {},
+    "passed": true,
+    "rows": 2
+  }
+]

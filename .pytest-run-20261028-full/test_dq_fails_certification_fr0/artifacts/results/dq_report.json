@@ -1,0 +1,17 @@
+[
+  {
+    "checked_at_utc": "2026-10-27T21:23:03.314316+00:00",
+    "dataset_id": "run2012bc_doublemuparked",
+    "failures": [
+      "certified_fraction within expected band"
+    ],
+    "layer": "silver",
+    "metrics": {
+      "certified_fraction": 0.5,
+      "events_after": 5,
+      "events_before": 10
+    },
+    "passed": false,
+    "rows": 1
+  }
+]

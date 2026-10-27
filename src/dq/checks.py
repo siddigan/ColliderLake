@@ -10,7 +10,7 @@ import pandas as pd
 
 from src.physics.pdg import MUON_MASS_GEV
 from src.utils.config import dataset_config
-from src.utils.paths import data_path
+from src.utils.paths import data_dir, data_path, ensure_parent
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
 ROW_TOLERANCE = 0.05
@@ -48,11 +48,11 @@ def append_report(entry: dict[str, Any]) -> None:
     if output.exists():
         history = json.loads(output.read_text(encoding="utf-8"))
     history.append(entry)
-    output.write_text(json.dumps(history, indent=2, sort_keys=True), encoding="utf-8")
+    ensure_parent(output).write_text(json.dumps(history, indent=2, sort_keys=True), encoding="utf-8")
 
 
 def dq_report_path() -> Path:
-    return data_path("results") / "dq_report.json"
+    return data_dir("results") / "dq_report.json"
 
 
 def _parquet_files(path: Path) -> list[Path]:

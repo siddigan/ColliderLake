@@ -12,7 +12,7 @@ import pandas as pd
 from src.cli import run_pipeline
 from src.physics.muons import invariant_mass
 from src.physics.pdg import JPSI_MASS_GEV, MUON_MASS_GEV
-from src.utils.paths import data_path, data_root
+from src.utils.paths import data_path, data_root, ensure_parent
 from tests.fit_assertions import assert_valid_fit
 
 
@@ -24,7 +24,7 @@ def test_decay_correct_fixture_runs_isolated_pipeline(tmp_path, monkeypatch):
         else {}
     )
     _prepare_root(tmp_path, monkeypatch)
-    source = data_path("raw", "run2012bc_doublemuparked", "fixture.root")
+    source = ensure_parent(data_path("raw", "run2012bc_doublemuparked", "fixture.root"))
     _write_decay_fixture(source, n_events=20_000, seed=20261028)
 
     run_pipeline("run2012bc_doublemuparked", "all", max_batches=2)

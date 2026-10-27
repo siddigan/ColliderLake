@@ -13,7 +13,7 @@ from iminuit import Minuit
 from src.physics.models import ModelSpec, background_model, signal_model
 from src.physics.pdg import UPSILON_1S_MASS_GEV
 from src.utils.config import load_yaml
-from src.utils.paths import config_path, data_path
+from src.utils.paths import config_path, data_dir, data_path, ensure_parent
 
 
 def fit_resonance(dataset_id: str) -> Path:
@@ -42,9 +42,11 @@ def fit_resonance(dataset_id: str) -> Path:
     if not rows:
         raise RuntimeError(f"No configured resonance windows contained data for {dataset_id}")
 
-    output_dir = data_path("results", "analysis=resonance", f"dataset={dataset_id}")
-    pd.DataFrame(rows).to_parquet(output_dir / "fits.parquet", index=False)
-    (output_dir / "fits.json").write_text(json.dumps(rows, indent=2, sort_keys=True), encoding="utf-8")
+    output_dir = data_dir("results", "analysis=resonance", f"dataset={dataset_id}")
+    pd.DataFrame(rows).to_parquet(ensure_parent(output_dir / "fits.parquet"), index=False)
+    ensure_parent(output_dir / "fits.json").write_text(
+        json.dumps(rows, indent=2, sort_keys=True), encoding="utf-8"
+    )
     return output_dir
 
 

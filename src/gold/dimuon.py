@@ -10,7 +10,7 @@ import pandas as pd
 from src.physics.muons import delta_r, pair_kinematics
 from src.physics.pdg import MUON_MASS_GEV
 from src.utils.config import selection_for_dataset
-from src.utils.paths import data_path, ensure_parent
+from src.utils.paths import data_dir, data_path, ensure_parent
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
 LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ _LOGGED_GLOBAL_MUON_NOOP = False
 
 def build_gold(dataset_id: str) -> Path:
     _, selection, sel_id = selection_for_dataset(dataset_id)
-    output_dir = data_path("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
+    output_dir = data_dir("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
     silver_events_dir = data_path("silver", f"dataset={dataset_id}", "events")
     silver_muons_dir = data_path("silver", f"dataset={dataset_id}", "muons")
     written = 0
