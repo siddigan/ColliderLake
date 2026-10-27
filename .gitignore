@@ -34,3 +34,7 @@ POC/data/processed/*
 POC/data/parquet/*
 POC/data/muon_db/*
 POC/outputs/*
+
+.pytest-run-*/
+tmp/
+*.log

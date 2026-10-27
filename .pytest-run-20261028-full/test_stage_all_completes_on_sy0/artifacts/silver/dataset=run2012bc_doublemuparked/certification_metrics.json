@@ -1,8 +1,0 @@
-{
-  "certified_fraction": 1.0,
-  "eta_drop_fraction": 0.0,
-  "events_after": 3,
-  "events_before": 3,
-  "muons_after_eta": 6,
-  "muons_before": 6
-}
