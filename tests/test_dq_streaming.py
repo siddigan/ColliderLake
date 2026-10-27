@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import json
 import shutil
-import threading
-import time
-from pathlib import Path
 
+import duckdb
 import numpy as np
 import pandas as pd
 import pytest
@@ -128,7 +126,6 @@ def test_bronze_omits_absent_optional_muon_branches(tmp_path, monkeypatch):
 
 
 def test_full_dq_spills_at_300mb_on_ten_million_keys(tmp_path, monkeypatch):
-    import os
     import sys
 
     _root(tmp_path, monkeypatch)
@@ -163,7 +160,7 @@ def test_full_dq_spills_at_300mb_on_ten_million_keys(tmp_path, monkeypatch):
         )
 
     monkeypatch.setattr(checks, "_duplicate_count_duckdb", observed_duplicate_check)
-    def working_set():
+    def peak_rss():
         if sys.platform == "win32":
             import ctypes
 
@@ -181,46 +178,20 @@ def test_full_dq_spills_at_300mb_on_ten_million_keys(tmp_path, monkeypatch):
             ctypes.windll.psapi.GetProcessMemoryInfo(
                 ctypes.windll.kernel32.GetCurrentProcess(), ctypes.byref(counters), counters.cb
             )
-            return counters.WorkingSetSize
+            return counters.PeakWorkingSetSize
         if sys.platform.startswith("linux"):
-            resident_pages = int(Path("/proc/self/statm").read_text().split()[1])
-            return resident_pages * os.sysconf("SC_PAGE_SIZE")
-        import tracemalloc
+            import resource
 
-        if not tracemalloc.is_tracing():
-            tracemalloc.start()
-        return tracemalloc.get_traced_memory()[0]
+            return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
+        pytest.skip("Peak RSS helper is available for Windows and Linux CI.")
 
-    baseline = working_set()
-    peak_delta = 0
-    spill_seen = False
-    errors = []
-    done = threading.Event()
-
-    def run():
-        try:
-            checks.run_dq("toy", "bronze", path)
-        except RuntimeError as error:
-            errors.append(error)
-        finally:
-            done.set()
-
-    worker = threading.Thread(target=run)
-    worker.start()
-    while not done.is_set():
-        peak_delta = max(peak_delta, working_set() - baseline)
-        for directory in spill_root.glob("dq-spill-*"):
-            if any(child.is_file() and child.stat().st_size > 0 for child in directory.iterdir()):
-                spill_seen = True
-        time.sleep(0.02)
-    worker.join()
-    peak_delta = max(peak_delta, working_set() - baseline)
-    assert len(errors) == 1
-    assert "duplicate key count: 100" in str(errors[0])
+    before_dq_peak = peak_rss()
+    with pytest.raises(RuntimeError, match="duplicate key count: 100"):
+        checks.run_dq("toy", "bronze", path)
+    peak_delta = max(0, peak_rss() - before_dq_peak)
     report = json.loads((tmp_path / "dq.json").read_text())[-1]
     assert report["rows"] == 10_000_000
     assert report["metrics"]["duplicate_key_count"] == 100
-    assert spill_seen, "DuckDB succeeded without creating observable spill files"
     assert len(configured) == 1
     directory, memory, insertion, threads = configured[0]
     assert directory.is_relative_to(spill_root.resolve())
@@ -230,3 +201,24 @@ def test_full_dq_spills_at_300mb_on_ten_million_keys(tmp_path, monkeypatch):
     assert not list(spill_root.glob("dq-spill-*")), "spill directory was not cleaned up"
     # 300 MiB configured DuckDB budget + 500 MiB host overhead allowance.
     assert peak_delta < 800 * 1024 * 1024
+
+    # Negative control: same 10M rows, grouped query, 300MB cap, and settings,
+    # but no spill location. These four int64 keys exceed the cap in the hash
+    # aggregate; fail if future DuckDB changes let the no-spill case fit.
+    source = "[" + ",".join(f"'{file.as_posix()}'" for file in checks._parquet_files(path)) + "]"
+    keys = ["dataset_id", "run", "luminosityBlock", "event"]
+    quoted_keys = ", ".join(f'"{key}"' for key in keys)
+    query = (
+        f"SELECT COALESCE(SUM(c - 1), 0) FROM (SELECT COUNT(*) AS c "
+        f"FROM read_parquet({source}, union_by_name=true) "
+        f"WHERE " + " AND ".join(f'"{key}" IS NOT NULL' for key in keys) +
+        f" GROUP BY {quoted_keys} HAVING COUNT(*) > 1)"
+    )
+    with duckdb.connect() as con:
+        con.execute("SET memory_limit = '300MB'")
+        con.execute("SET temp_directory = ''")
+        con.execute("SET preserve_insertion_order = false")
+        con.execute("SET threads = 2")
+        assert con.execute("SELECT current_setting('temp_directory')").fetchone()[0] == ""
+        with pytest.raises(duckdb.OutOfMemoryException):
+            con.execute(query).fetchone()
