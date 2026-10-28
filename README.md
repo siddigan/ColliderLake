@@ -6,9 +6,6 @@ processes it through structured, quality-gated layers, and reproduces
 benchmark particle-physics results with full provenance and reproducible,
 scripted execution.
 
-> `CMS` here means the **Compact Muon Solenoid experiment at CERN's Large
-> Hadron Collider** — not the Centers for Medicare & Medicaid Services.
-
 ## Overview
 
 Raw ROOT files land immutably with SHA-256 manifests. Bronze mirrors them as
@@ -73,6 +70,7 @@ Physics core built and verified (calibrated maximum-likelihood fits, exact
 bronze/silver/gold layers, and DQ gates are operational. Airflow DAGs, CI,
 figure generation, and the full-statistics production run are in progress.
 The earlier proof-of-concept is preserved under `POC/`.
+M1 resonance ladder result ledger: [docs/results/M1_RESONANCE_LADDER.md](docs/results/M1_RESONANCE_LADDER.md).
 
 ## License and disclaimer
 
