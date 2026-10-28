@@ -93,11 +93,26 @@ def test_pairing_rejects_more_than_sixteen_muons_with_event_key():
     )
     muons = pd.DataFrame(_muon_rows([(99, [10.0] * 17, [1, -1] * 8 + [1])]))
     try:
-        _build_pairs_for_part(events, muons, SELECTION, "deadbeef")
+        _build_pairs_for_part(events, muons, {**SELECTION, "max_muons_per_event": 16}, "deadbeef")
     except ValueError as exc:
         assert "('toy', 1, 1, 99)" in str(exc)
+        assert "max_muons_per_event=16" in str(exc)
     else:
         raise AssertionError("expected the per-event muon guard to fail")
+
+
+def test_forty_muons_pass_default_tripwire_and_make_all_os_pairs():
+    events = pd.DataFrame(
+        [{"dataset_id": "toy", "run": 1, "luminosityBlock": 1, "event": 101, "identity_mode": "synthetic"}]
+    )
+    charges = [1] * 20 + [-1] * 20
+    muons = pd.DataFrame(_muon_rows([(101, [10.0] * 40, charges)]))
+    selection = {**SELECTION, "mass_window": [0.0, 300.0]}
+
+    rows = _build_pairs_for_part(events, muons, selection, "default128")
+
+    assert len(rows) == 20 * 20
+    assert {row["pair_idx"] for row in rows} == set(range(20 * 20))
 
 
 def _sorted_frame(rows: list[dict[str, object]]) -> pd.DataFrame:

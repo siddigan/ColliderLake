@@ -82,6 +82,10 @@ def test_missing_key_and_profile_required_columns_are_explicit_failures(tmp_path
         checks.run_dq("run2012bc_doublemuparked", "gold", path)
     report = json.loads((tmp_path / "dq.json").read_text())[-1]
     assert any("contract violation: Muon_pfRelIso04_all required by profile nanoaod_full" in x for x in report["failures"])
+    from src.utils.config import selection_for_dataset
+
+    assert report["selection_id"] == selection_for_dataset("run2012bc_doublemuparked")[2]
+    assert report["metrics"]["max_muons_per_event"] == 128
 
 
 def test_eight_part_reads_are_projected_and_duckdb_handles_uniqueness(tmp_path, monkeypatch):
@@ -123,6 +127,36 @@ def test_bronze_omits_absent_optional_muon_branches(tmp_path, monkeypatch):
     _write_muons(base, {"Muon_pt": [[2.0]], "Muon_eta": [[0.1]]}, "toy", "part.parquet")
     result = pd.read_parquet(tmp_path / "artifacts/bronze/dataset=toy/muons/part.parquet")
     assert "iso" not in result.columns
+
+
+def test_silver_dq_reports_muon_multiplicity_metrics_per_part(tmp_path, monkeypatch, caplog):
+    _root(tmp_path, monkeypatch)
+    path = tmp_path / "silver" / "dataset=toy" / "muons"
+    path.mkdir(parents=True)
+    pd.DataFrame({
+        "dataset_id": ["toy"] * 70,
+        "run": [1] * 70,
+        "luminosityBlock": [1] * 70,
+        "event": [42] * 70,
+        "muon_idx": list(range(70)),
+        "pt": [5.0] * 70,
+        "eta": [0.1] * 70,
+    }).to_parquet(path / "part-000.parquet", index=False)
+    report_path = tmp_path / "dq.json"
+    monkeypatch.setattr(checks, "dq_report_path", lambda: report_path)
+
+    report = checks.run_dq("toy", "silver", path)
+
+    assert report["passed"]
+    assert report["metrics"]["muons_per_event_max"] == 70
+    assert report["metrics"]["events_above_half_max"] == 1
+    assert report["metrics"]["muon_multiplicity_parts"] == [
+        {"part": "part-000.parquet", "muons_per_event_max": 70, "events_above_half_max": 1}
+    ]
+    warnings = [record.getMessage() for record in caplog.records if "muon multiplicity warning" in record.getMessage()]
+    assert len(warnings) == 1
+    assert "events_above_half_max=1" in warnings[0]
+    assert "max_seen=70" in warnings[0]
 
 
 def test_full_dq_spills_at_300mb_on_ten_million_keys(tmp_path, monkeypatch):

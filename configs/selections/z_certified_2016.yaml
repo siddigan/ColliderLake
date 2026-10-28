@@ -12,3 +12,4 @@ trigger:
   paths:
     - HLT_IsoMu24
 mass_window: [60.0, 120.0]
+max_muons_per_event: 128

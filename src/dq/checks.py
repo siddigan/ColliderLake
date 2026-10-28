@@ -14,7 +14,7 @@ import pandas as pd
 from pyarrow import parquet
 
 from src.physics.pdg import MUON_MASS_GEV
-from src.utils.config import dataset_config
+from src.utils.config import dataset_config, selection_for_dataset
 from src.utils.paths import config_path, data_dir, data_path, ensure_parent
 from src.utils.runlog import get_logger, safe_log
 
@@ -30,6 +30,20 @@ def run_dq(dataset_id: str, layer: str, table_path: Path) -> dict[str, Any]:
         "checked_at_utc": datetime.now(UTC).isoformat(), "rows": 0,
         "metrics": {}, "passed": True, "failures": [], "columns": {},
     }
+    if layer == "gold":
+        try:
+            _, selection, selection_id = selection_for_dataset(dataset_id)
+        except KeyError:
+            selection, selection_id = {}, None
+        if selection_id is not None:
+            report["selection_id"] = selection_id
+            report["metrics"]["max_muons_per_event"] = int(selection.get("max_muons_per_event", 128))
+    if layer == "silver":
+        report["metrics"].update(
+            muons_per_event_max=0,
+            events_above_half_max=0,
+            muon_multiplicity_parts=[],
+        )
     keys = EVENT_KEYS + (["pair_idx"] if layer == "gold" else [])
     if layer in {"bronze", "silver"} and any("muons" in part.parts for part in files):
         keys.append("muon_idx")
@@ -51,6 +65,7 @@ def run_dq(dataset_id: str, layer: str, table_path: Path) -> dict[str, Any]:
         report["columns"].setdefault(column, "not present" if column in {"iso"} else "skipped")
     report["columns"].setdefault("iso", "not present")
 
+    multiplicity_threshold = _muon_multiplicity_threshold(dataset_id)
     for file in files:
         available = set(_schema_columns([file]))
         projection = [c for c in keys + checked if c in available]
@@ -64,6 +79,33 @@ def run_dq(dataset_id: str, layer: str, table_path: Path) -> dict[str, Any]:
                 if null_count:
                     _require(False, f"no nulls in {key}", report)
         _check_physics(frame, layer, report)
+        if layer == "silver" and "muon_idx" in frame and all(key in frame for key in EVENT_KEYS):
+            counts = frame.groupby(EVENT_KEYS, sort=False).size()
+            part_max = int(counts.max()) if not counts.empty else 0
+            above_half = int((counts > multiplicity_threshold / 2).sum())
+            report["metrics"]["muons_per_event_max"] = max(
+                report["metrics"].get("muons_per_event_max", 0), part_max
+            )
+            report["metrics"]["events_above_half_max"] = (
+                report["metrics"].get("events_above_half_max", 0) + above_half
+            )
+            report["metrics"].setdefault("muon_multiplicity_parts", []).append(
+                {
+                    "part": file.name,
+                    "muons_per_event_max": part_max,
+                    "events_above_half_max": above_half,
+                }
+            )
+            if above_half:
+                safe_log(
+                    logger,
+                    logging.WARNING,
+                    "muon multiplicity warning | part %s | events_above_half_max=%d | max_seen=%d | configured_max=%d",
+                    file.name,
+                    above_half,
+                    part_max,
+                    multiplicity_threshold,
+                )
     _require(report["rows"] > 0, "nonzero rows", report)
 
     dup_count = _duplicate_count_duckdb(files, keys, data_dir("tmp")) if files and not missing else 0
@@ -87,6 +129,14 @@ def _schema_columns(files: list[Path]) -> list[str]:
             if name not in columns:
                 columns.append(name)
     return columns
+
+
+def _muon_multiplicity_threshold(dataset_id: str) -> int:
+    try:
+        _, selection, _ = selection_for_dataset(dataset_id)
+    except KeyError:
+        return 128
+    return int(selection.get("max_muons_per_event", 128))
 
 
 def _contract_columns(dataset_id: str, layer: str) -> tuple[str | None, list[str]]:

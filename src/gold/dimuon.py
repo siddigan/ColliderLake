@@ -22,6 +22,7 @@ _LOGGED_GLOBAL_MUON_NOOP = False
 def build_gold(dataset_id: str) -> Path:
     logger = get_logger("gold")
     _, selection, sel_id = selection_for_dataset(dataset_id)
+    safe_log(logger, logging.INFO, "selection_id=%s max_muons_per_event=%s", sel_id, selection.get("max_muons_per_event", 128))
     output_dir = data_dir("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
     silver_events_dir = data_path("silver", f"dataset={dataset_id}", "events")
     silver_muons_dir = data_path("silver", f"dataset={dataset_id}", "muons")
@@ -32,7 +33,7 @@ def build_gold(dataset_id: str) -> Path:
             continue
         events = pd.read_parquet(event_file)
         muons = pd.read_parquet(muon_file)
-        rows = _build_pairs_for_part(events, muons, selection, sel_id)
+        rows = _build_pairs_for_part(events, muons, selection, sel_id, event_file.name)
         output = pd.DataFrame(rows)
         if not output.empty:
             output["pair_idx"] = output["pair_idx"].astype("int32")
@@ -63,6 +64,7 @@ def _build_pairs_for_part(
     muons: pd.DataFrame,
     selection: dict[str, Any],
     sel_id: str,
+    part_name: str | None = None,
 ) -> list[dict[str, Any]]:
     """Build all pairs for one silver part without per-event Python loops."""
     if events.empty or muons.empty:
@@ -82,10 +84,25 @@ def _build_pairs_for_part(
     if selected.empty:
         return []
     counts = selected.groupby(EVENT_KEYS, sort=False).size()
-    too_many = counts[counts > 16]
+    max_muons = int(selection.get("max_muons_per_event", 128))
+    above_half = counts[counts > max_muons / 2]
+    if not above_half.empty:
+        safe_log(
+            LOGGER,
+            logging.WARNING,
+            "muon multiplicity warning | part %s | events_above_half_max=%d | max_muons_per_event_seen=%d | configured_max=%d",
+            part_name or "<in-memory>",
+            len(above_half),
+            int(counts.max()),
+            max_muons,
+        )
+    too_many = counts[counts > max_muons]
     if not too_many.empty:
         key = tuple(value.item() if isinstance(value, np.generic) else value for value in too_many.index[0])
-        raise ValueError(f"Too many selected muons for event key {key}: {int(too_many.iloc[0])} > 16")
+        raise ValueError(
+            f"Too many selected muons for event key {key}: {int(too_many.iloc[0])} > "
+            f"selection config max_muons_per_event={max_muons}"
+        )
 
     muon_columns = ["muon_idx", "pt", "eta", "phi", "mass", "charge", "iso"]
     selected = selected[EVENT_KEYS + muon_columns]
