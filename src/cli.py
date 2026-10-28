@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import time
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 from src.acquire.clam import diagnose_file, download_file, write_diagnosis
@@ -52,7 +54,9 @@ def main() -> None:
     diagnose = clam_sub.add_parser("diagnose", help="Diagnose headers for a registered file")
     diagnose.add_argument("filename")
     diagnose.add_argument("--dataset", default="run2012bc_doublemuparked")
-    diagnose.add_argument("--write", action="store_true", help="Write diagnosis JSON beside raw file")
+    diagnose.add_argument(
+        "--write", action="store_true", help="Write diagnosis JSON beside raw file"
+    )
     download = clam_sub.add_parser("download", help="Resume-safe download for a registered file")
     download.add_argument("filename")
     download.add_argument("--dataset", default="run2012bc_doublemuparked")
@@ -70,7 +74,9 @@ def main() -> None:
             quiet=args.quiet,
         )
     elif args.command == "clam":
-        configure_logging(quiet=getattr(args, "quiet", False), verbose=getattr(args, "verbose", False))
+        configure_logging(
+            quiet=getattr(args, "quiet", False), verbose=getattr(args, "verbose", False)
+        )
         run_clam(args)
 
 
@@ -123,7 +129,11 @@ def run_pipeline(
                 raise
     finally:
         summary = _run_summary(dataset_id, results, time.monotonic() - run_started)
-        _emit_summary(summary)
+        _emit_summary(
+            summary,
+            archive=(stage == "all"),
+        )
+
 
 def run_clam(args: argparse.Namespace) -> None:
     if args.clam_command == "diagnose":
@@ -181,22 +191,29 @@ def _input_description(dataset_id: str) -> str:
 
 
 def _run_summary(dataset_id: str, results: dict[str, StageResult], total: float) -> str:
+    workers = os.environ.get("COLLIDERLAKE_WORKERS", "auto")
     lines = [
         "ColliderLake run summary",
-        "stage    | status  | duration | rows_out",
-        "---------|---------|----------|---------",
+        "stage    | status  | duration | rows_out | rows_per_second",
+        "---------|---------|----------|----------|----------------",
     ]
     for stage, result in results.items():
         lines.append(
-            f"{stage:<8} | {result.status:<7} | {format_duration(result.duration):<8} | {result.rows_out:,}"
+            f"{stage:<8} | {result.status:<7} | {format_duration(result.duration):<8} | {result.rows_out:,} | {result.rows_out / result.duration if result.duration else 0:.2f}"
         )
-    overall = "SUCCESS" if all(result.status == "SUCCESS" for result in results.values()) else "PARTIAL"
+    overall = (
+        "SUCCESS" if all(result.status == "SUCCESS" for result in results.values()) else "PARTIAL"
+    )
     lines.extend(
         [
             "",
             f"dataset_id: {dataset_id}",
             f"overall_status: {overall}",
             f"total_wall_time: {format_duration(total)}",
+            f"workers: {workers}",
+            "stage_speedup: measured by scripts/bench_compare.py against a prior run summary",
+            "pipeline_speedup: measured by scripts/bench_compare.py against a prior run summary",
+            f"selection_id: {_selection_id(dataset_id)}",
             f"fit_config_id: {_fit_config_id()}",
             f"results: {data_path('results')}",
             f"dq_report: {data_path('results') / 'dq_report.json'}",
@@ -212,11 +229,24 @@ def _fit_config_id() -> str:
         return "unknown"
 
 
-def _emit_summary(summary: str) -> None:
+def _selection_id(dataset_id: str) -> str:
+    try:
+        from src.utils.config import selection_for_dataset
+
+        return selection_for_dataset(dataset_id)[2]
+    except Exception:  # noqa: BLE001
+        return "unknown"
+
+
+def _emit_summary(summary: str, *, archive: bool = False) -> None:
     _try_print_summary(summary)
     try:
         output = ensure_parent(data_path("results", "run_summary.txt"))
         output.write_text(summary, encoding="utf-8")
+        if archive:
+            stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S.%fZ")
+            archived = ensure_parent(data_path("results", "benchmarks", f"run_summary_{stamp}.txt"))
+            archived.write_text(summary, encoding="utf-8")
     except Exception:  # noqa: BLE001
         return
 

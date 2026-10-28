@@ -9,12 +9,13 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 from iminuit import Minuit
 
 from src.physics.models import ModelSpec, background_model, signal_model
 from src.physics.pdg import UPSILON_1S_MASS_GEV
 from src.utils.config import fit_config_id, load_yaml
-from src.utils.paths import config_path, data_dir, data_path, ensure_parent
+from src.utils.paths import PARQUET_COMPRESSION, config_path, data_dir, data_path, ensure_parent
 from src.utils.runlog import add_stage_stats, get_logger, safe_log
 
 
@@ -28,14 +29,15 @@ def fit_resonance(dataset_id: str) -> Path:
     config = load_yaml(config_path("fits", "resonance_ladder.yaml"))
     config_id = fit_config_id(config)
     masses_parts: list[np.ndarray] = []
-    selection_ids: set[str] = set()
     for file in files:
-        frame = pd.read_parquet(file, columns=["mass", "selection_id"])
+        frame = pd.read_parquet(file, columns=["mass"])
         masses_parts.append(frame["mass"].to_numpy(dtype=float))
-        selection_ids.update(str(value) for value in frame["selection_id"].dropna().unique())
 
     masses = np.concatenate(masses_parts) if masses_parts else np.array([], dtype=float)
-    selection_id = min(selection_ids) if selection_ids else ""
+    first_metadata = (
+        pq.ParquetFile(files[0]).read_row_group(0, columns=["selection_id"]).slice(0, 1)
+    )
+    selection_id = str(first_metadata.column(0)[0].as_py()) if first_metadata.num_rows else ""
     rows: list[dict[str, Any]] = []
     for resonance, fit_config in config["fits"].items():
         window = tuple(float(value) for value in fit_config["window"])
@@ -82,7 +84,9 @@ def fit_resonance(dataset_id: str) -> Path:
         raise RuntimeError(f"No configured resonance windows contained data for {dataset_id}")
 
     output_dir = data_dir("results", "analysis=resonance", f"dataset={dataset_id}")
-    pd.DataFrame(rows).to_parquet(ensure_parent(output_dir / "fits.parquet"), index=False)
+    pd.DataFrame(rows).to_parquet(
+        ensure_parent(output_dir / "fits.parquet"), index=False, compression=PARQUET_COMPRESSION
+    )
     ensure_parent(output_dir / "fits.json").write_text(
         json.dumps(rows, indent=2, sort_keys=True), encoding="utf-8"
     )

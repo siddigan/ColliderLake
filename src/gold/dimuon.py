@@ -1,17 +1,22 @@
 from __future__ import annotations
 
+import json
 import logging
+import os
+import traceback
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from itertools import combinations
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 
 from src.physics.muons import delta_r, pair_kinematics
 from src.physics.pdg import MUON_MASS_GEV
 from src.utils.config import selection_for_dataset
-from src.utils.paths import data_dir, data_path, ensure_parent
+from src.utils.paths import PARQUET_COMPRESSION, data_dir, data_path, ensure_parent
 from src.utils.runlog import add_stage_stats, get_logger, safe_log
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
@@ -22,41 +27,157 @@ _LOGGED_GLOBAL_MUON_NOOP = False
 def build_gold(dataset_id: str) -> Path:
     logger = get_logger("gold")
     _, selection, sel_id = selection_for_dataset(dataset_id)
-    safe_log(logger, logging.INFO, "selection_id=%s max_muons_per_event=%s", sel_id, selection.get("max_muons_per_event", 128))
+    safe_log(
+        logger,
+        logging.INFO,
+        "selection_id=%s max_muons_per_event=%s",
+        sel_id,
+        selection.get("max_muons_per_event", 128),
+    )
     output_dir = data_dir("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
     silver_events_dir = data_path("silver", f"dataset={dataset_id}", "events")
     silver_muons_dir = data_path("silver", f"dataset={dataset_id}", "muons")
     written = 0
-    for event_file in sorted(silver_events_dir.glob("*.parquet")):
-        muon_file = silver_muons_dir / event_file.name
-        if not muon_file.exists():
-            continue
-        events = pd.read_parquet(event_file)
-        muons = pd.read_parquet(muon_file)
-        rows = _build_pairs_for_part(events, muons, selection, sel_id, event_file.name)
-        output = pd.DataFrame(rows)
-        if not output.empty:
-            output["pair_idx"] = output["pair_idx"].astype("int32")
-        output.to_parquet(ensure_parent(output_dir / event_file.name), index=False)
-        events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if not output.empty else 0
-        if output.empty:
-            mass_range = "n/a"
-        else:
-            mass_range = f"{output['mass'].min():.6g}–{output['mass'].max():.6g}"
-        safe_log(
-            logger,
-            logging.INFO,
-            "part %s | events with >=2 OS muons %s | pairs built %s | mass %s",
-            event_file.name,
-            f"{events_with_pairs:,}",
-            f"{len(output):,}",
-            mass_range,
-        )
-        add_stage_stats("gold", batches=1, rows_out=len(output), events=events_with_pairs)
-        written += 1
+    multiplicity_metrics = {"muons_per_event_max": 0, "events_above_half_max": 0}
+    event_files = [
+        path
+        for path in sorted(silver_events_dir.glob("*.parquet"))
+        if (silver_muons_dir / path.name).exists()
+    ]
+    workers = _worker_count(len(event_files))
+    if workers > 1:
+        completed: list[dict[str, Any]] = []
+        failures: list[str] = []
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            futures = {
+                pool.submit(_process_gold_part, str(path), dataset_id, selection, sel_id): path
+                for path in event_files
+            }
+            for future in as_completed(futures):
+                try:
+                    completed.append(future.result())
+                except Exception as exc:  # noqa: BLE001 - surface worker failures with traceback
+                    failures.append(f"{futures[future].name}: {exc!r}\n{traceback.format_exc()}")
+        if failures:
+            raise RuntimeError("Gold part processing failed:\n" + "\n".join(failures))
+        for result in sorted(completed, key=lambda item: item["part"]):
+            safe_log(logger, logging.INFO, result["log"])
+            add_stage_stats("gold", batches=1, rows_out=result["rows"], events=result["events"])
+            written += 1
+            multiplicity_metrics["muons_per_event_max"] = max(
+                multiplicity_metrics["muons_per_event_max"], result["muons_per_event_max"]
+            )
+            multiplicity_metrics["events_above_half_max"] += result["events_above_half_max"]
+    else:
+        # The one-worker mode retains the original sequential path verbatim.
+        for event_file in sorted(silver_events_dir.glob("*.parquet")):
+            muon_file = silver_muons_dir / event_file.name
+            if not muon_file.exists():
+                continue
+            events = pd.read_parquet(event_file)
+            muons = pd.read_parquet(muon_file)
+            part_metrics = _multiplicity_metrics(muons, selection)
+            multiplicity_metrics["muons_per_event_max"] = max(
+                multiplicity_metrics["muons_per_event_max"], part_metrics["muons_per_event_max"]
+            )
+            multiplicity_metrics["events_above_half_max"] += part_metrics["events_above_half_max"]
+            rows = _build_pairs_for_part(events, muons, selection, sel_id, event_file.name)
+            output = pd.DataFrame(rows)
+            if not output.empty:
+                output["pair_idx"] = output["pair_idx"].astype("int32")
+            output.to_parquet(
+                ensure_parent(output_dir / event_file.name),
+                index=False,
+                compression=PARQUET_COMPRESSION,
+            )
+            events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if not output.empty else 0
+            if output.empty:
+                mass_range = "n/a"
+            else:
+                mass_range = f"{output['mass'].min():.6g}Ã¢â‚¬â€œ{output['mass'].max():.6g}"
+            safe_log(
+                logger,
+                logging.INFO,
+                "part %s | events with >=2 OS muons %s | pairs built %s | mass %s",
+                event_file.name,
+                f"{events_with_pairs:,}",
+                f"{len(output):,}",
+                mass_range,
+            )
+            add_stage_stats("gold", batches=1, rows_out=len(output), events=events_with_pairs)
+            written += 1
     if written == 0:
         raise FileNotFoundError(f"No silver event/muon file pairs found for {dataset_id}")
+    ensure_parent(output_dir / "multiplicity_metrics.json").write_text(
+        json.dumps(multiplicity_metrics, indent=2, sort_keys=True), encoding="utf-8"
+    )
     return output_dir
+
+
+def _worker_count(n_parts: int) -> int:
+    override = os.environ.get("COLLIDERLAKE_WORKERS")
+    if override is not None:
+        try:
+            return max(1, min(int(override), n_parts))
+        except ValueError as exc:
+            raise ValueError("COLLIDERLAKE_WORKERS must be a positive integer") from exc
+    return max(1, min((os.cpu_count() or 1) - 1, n_parts))
+
+
+def _process_gold_part(
+    event_path: str, dataset_id: str, selection: dict[str, Any], sel_id: str
+) -> dict[str, Any]:
+    event_file = Path(event_path)
+    muon_file = data_path("silver", f"dataset={dataset_id}", "muons") / event_file.name
+    trigger_paths = list(selection.get("trigger", {}).get("paths", []))
+    event_columns = list(dict.fromkeys(EVENT_KEYS + ["identity_mode"] + trigger_paths))
+    event_columns = [
+        column for column in event_columns if column in pq.ParquetFile(event_file).schema.names
+    ]
+    muon_columns = [
+        column
+        for column in EVENT_KEYS
+        + ["muon_idx", "pt", "eta", "phi", "mass", "charge", "iso", "tight_id", "medium_id"]
+        if column in pq.ParquetFile(muon_file).schema.names
+    ]
+    events = pd.read_parquet(event_file, columns=event_columns)
+    muons = pd.read_parquet(muon_file, columns=muon_columns)
+    part_metrics = _multiplicity_metrics(muons, selection)
+    rows = _build_pairs_for_part(
+        events, muons, selection, sel_id, event_file.name, emit_warnings=False
+    )
+    output = pd.DataFrame(rows)
+    if not output.empty:
+        output["pair_idx"] = output["pair_idx"].astype("int32")
+    output_dir = data_dir("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
+    output.to_parquet(
+        ensure_parent(output_dir / event_file.name), index=False, compression=PARQUET_COMPRESSION
+    )
+    events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if not output.empty else 0
+    mass_range = (
+        "n/a" if output.empty else f"{output['mass'].min():.6g}Ã¢â‚¬â€œ{output['mass'].max():.6g}"
+    )
+    log = f"part {event_file.name} | events with >=2 OS muons {events_with_pairs:,} | pairs built {len(output):,} | mass {mass_range}"
+    return {
+        "part": event_file.name,
+        "rows": len(output),
+        "events": events_with_pairs,
+        "log": log,
+        **part_metrics,
+    }
+
+
+def _multiplicity_metrics(muons: pd.DataFrame, selection: dict[str, Any]) -> dict[str, int]:
+    selected = _select_muons(muons, selection.get("muon", {}))
+    if selected.empty:
+        return {"muons_per_event_max": 0, "events_above_half_max": 0}
+    counts = selected.groupby(EVENT_KEYS, sort=False).size()
+    maximum = int(counts.max())
+    limit = int(selection.get("max_muons_per_event", 128))
+    return {
+        "muons_per_event_max": maximum,
+        "events_above_half_max": int((counts > limit / 2).sum()),
+    }
 
 
 def _build_pairs_for_part(
@@ -65,6 +186,7 @@ def _build_pairs_for_part(
     selection: dict[str, Any],
     sel_id: str,
     part_name: str | None = None,
+    emit_warnings: bool = True,
 ) -> list[dict[str, Any]]:
     """Build all pairs for one silver part without per-event Python loops."""
     if events.empty or muons.empty:
@@ -86,7 +208,7 @@ def _build_pairs_for_part(
     counts = selected.groupby(EVENT_KEYS, sort=False).size()
     max_muons = int(selection.get("max_muons_per_event", 128))
     above_half = counts[counts > max_muons / 2]
-    if not above_half.empty:
+    if not above_half.empty and emit_warnings:
         safe_log(
             LOGGER,
             logging.WARNING,
@@ -98,7 +220,9 @@ def _build_pairs_for_part(
         )
     too_many = counts[counts > max_muons]
     if not too_many.empty:
-        key = tuple(value.item() if isinstance(value, np.generic) else value for value in too_many.index[0])
+        key = tuple(
+            value.item() if isinstance(value, np.generic) else value for value in too_many.index[0]
+        )
         raise ValueError(
             f"Too many selected muons for event key {key}: {int(too_many.iloc[0])} > "
             f"selection config max_muons_per_event={max_muons}"
@@ -259,7 +383,10 @@ def _event_pairs(
     selected.sort(key=lambda item: int(item.get("muon_idx", 0)))
     rows: list[dict[str, Any]] = []
     for first, second in combinations(selected, 2):
-        if selection.get("pair", {}).get("opposite_charge", True) and first["charge"] * second["charge"] >= 0:
+        if (
+            selection.get("pair", {}).get("opposite_charge", True)
+            and first["charge"] * second["charge"] >= 0
+        ):
             continue
         pair = pair_kinematics(
             first["pt"],

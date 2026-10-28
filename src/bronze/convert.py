@@ -11,7 +11,7 @@ import pandas as pd
 
 from src.acquire.local import manifest_entries
 from src.utils.config import dataset_config
-from src.utils.paths import data_dir, data_path, ensure_parent
+from src.utils.paths import PARQUET_COMPRESSION, data_dir, data_path, ensure_parent
 from src.utils.runlog import add_stage_stats, format_duration, get_logger, safe_log
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
@@ -70,7 +70,9 @@ def _root_to_parquet(
             missing_keys = [branch for branch in NATIVE_KEYS if branch not in branches]
             if missing_keys:
                 raise KeyError(f"{source} is missing required event branches: {missing_keys}")
-        for batch_index, arrays in enumerate(tree.iterate(branches, library="np", step_size="25 MB")):
+        for batch_index, arrays in enumerate(
+            tree.iterate(branches, library="np", step_size="25 MB")
+        ):
             if max_batches is not None and batch_index >= max_batches:
                 break
             batch_size = _batch_size(arrays)
@@ -205,7 +207,7 @@ def _write_events(
         if _is_scalar_array(values):
             events[name] = values
     path = data_path("bronze", f"dataset={dataset_id}", "events") / part
-    events.to_parquet(ensure_parent(path), index=False)
+    events.to_parquet(ensure_parent(path), index=False, compression=PARQUET_COMPRESSION)
     return len(events)
 
 
@@ -245,11 +247,13 @@ def _write_muons(
                 if branch not in arrays:
                     continue
                 values = jagged[branch]
-                row[column] = values[event_idx][muon_idx] if muon_idx < len(values[event_idx]) else None
+                row[column] = (
+                    values[event_idx][muon_idx] if muon_idx < len(values[event_idx]) else None
+                )
             rows.append(row)
     muons = pd.DataFrame(rows)
     path = data_path("bronze", f"dataset={dataset_id}", "muons") / part
-    muons.to_parquet(ensure_parent(path), index=False)
+    muons.to_parquet(ensure_parent(path), index=False, compression=PARQUET_COMPRESSION)
     return len(muons)
 
 

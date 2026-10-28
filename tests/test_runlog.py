@@ -107,6 +107,16 @@ def test_summary_file_matches_terminal_summary(tmp_path, monkeypatch, capsys):
     assert "fit_config_id:" in written
 
 
+def test_full_run_archives_timestamped_summary(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("COLLIDERLAKE_DATA_ROOT", str(tmp_path / "artifacts"))
+    monkeypatch.setattr(cli, "_run_stage", lambda *_args: None)
+    cli.run_pipeline("run2012bc_doublemuparked", "all", quiet=True)
+    capsys.readouterr()
+    archived = list((tmp_path / "artifacts" / "results" / "benchmarks").glob("run_summary_*.txt"))
+    assert len(archived) == 1
+    assert archived[0].read_text(encoding="utf-8").startswith("ColliderLake run summary\n")
+
+
 def test_logging_does_not_add_parquet_reads(tmp_path, monkeypatch):
     monkeypatch.setenv("COLLIDERLAKE_ROOT", str(tmp_path))
     monkeypatch.setenv("COLLIDERLAKE_DATA_ROOT", str(tmp_path / "artifacts"))
