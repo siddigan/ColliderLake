@@ -185,7 +185,16 @@ def _triple_gaussian_spec(resonance: str, window: tuple[float, float]) -> ModelS
 
 
 def _voigtian_spec(resonance: str, window: tuple[float, float]) -> ModelSpec:
-    return ModelSpec("breit_wigner_conv_gaussian", {"mass": _mass_seed(resonance, window), "sigma": max((window[1] - window[0]) / 20.0, np.finfo(float).eps)}, {"mass": window, "sigma": (np.finfo(float).eps, window[1] - window[0])}, voigtian_pdf, "mass", "sigma")
+    # The Gaussian detector resolution at the Z is O(GeV); floor it above the
+    # degenerate sub-bin solution while leaving the PDG Lorentzian width fixed.
+    return ModelSpec(
+        "breit_wigner_conv_gaussian",
+        {"mass": _mass_seed(resonance, window), "sigma": 1.5},
+        {"mass": window, "sigma": (0.3, 5.0)},
+        voigtian_pdf,
+        "mass",
+        "sigma",
+    )
 
 
 def _exponential_spec(window: tuple[float, float]) -> ModelSpec:

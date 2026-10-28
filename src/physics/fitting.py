@@ -116,26 +116,32 @@ def fit_masses(
         minuit.limits[name] = limits
     minuit.migrad()
     minuit.hesse()
-    if not minuit.fmin.is_valid:
-        raise RuntimeError(
-            f"Fit failed for {resonance}: fmin={minuit.fmin}, values={_minuit_values(minuit)}"
-        )
+    status = _fit_status(minuit)
 
     values = {name: float(minuit.values[name]) for name in minuit.parameters}
     errors = {name: float(minuit.errors[name]) for name in minuit.parameters}
     mass_fit = _mass_value(signal, values)
     mass_stat_unc = _mass_error(signal, errors)
     pdg_mass = _pdg_mass(config)
+    chi2 = _chi2(counts, cost.expected(values))
+    ndf = int(max(len(counts) - len(values), 0))
+    chi2_ndf = chi2 / ndf if ndf > 0 else math.inf
     return {
         "resonance": resonance,
-        "status": "valid",
+        "status": status,
+        "converged": bool(minuit.fmin.is_valid),
+        "parameters_at_limit": _free_parameter_at_limit(minuit),
+        "covariance_accurate": bool(getattr(minuit.fmin, "has_accurate_covar", False)),
+        "covariance_posdef": bool(getattr(minuit.fmin, "has_posdef_covar", False)),
         "signal_yield": float(values["signal_yield"]),
         "background_yield": float(values["background_yield"]),
         "mass_fit": mass_fit,
         "mass_stat_unc": mass_stat_unc,
         "width": float(values[signal.width_parameter]),
-        "chi2": _chi2(counts, cost.expected(values)),
-        "ndf": int(max(len(counts) - len(values), 0)),
+        "width_stat_unc": float(errors[signal.width_parameter]),
+        "chi2": chi2,
+        "ndf": ndf,
+        "gof_flag": "poor" if chi2_ndf > 5.0 else "ok",
         "pdg_mass": pdg_mass,
         "delta_pdg_sigma": (mass_fit - pdg_mass) / mass_stat_unc if mass_stat_unc else None,
         "selection_id": selection_id,
@@ -268,3 +274,39 @@ def _fit_validity_reasons(row: dict[str, Any]) -> list[str]:
 
 def _minuit_values(minuit: Minuit) -> dict[str, float]:
     return {name: float(minuit.values[name]) for name in minuit.parameters}
+
+
+def _fit_status(minuit: Minuit) -> str:
+    """Classify fit quality with deterministic first-match precedence."""
+    if not bool(minuit.fmin.is_valid):
+        return "failed"
+    if _free_parameter_at_limit(minuit):
+        return "invalid_at_limit"
+    if not bool(getattr(minuit.fmin, "has_accurate_covar", False)):
+        return "invalid_covariance"
+    if not bool(getattr(minuit.fmin, "has_posdef_covar", False)):
+        return "invalid_covariance"
+    return "valid"
+
+
+def _free_parameter_at_limit(minuit: Minuit) -> bool:
+    fmin_at_limit = bool(getattr(minuit.fmin, "has_parameters_at_limit", False))
+    for parameter in minuit.params:
+        if bool(getattr(parameter, "is_fixed", False)):
+            continue
+        explicit = getattr(parameter, "is_at_limit", None)
+        if explicit is not None and bool(explicit):
+            return True
+        value = float(minuit.values[parameter.name])
+        error = abs(float(minuit.errors[parameter.name]))
+        for has_limit, bound in (
+            (getattr(parameter, "has_lower_limit", False), getattr(parameter, "lower_limit", None)),
+            (getattr(parameter, "has_upper_limit", False), getattr(parameter, "upper_limit", None)),
+        ):
+            if not has_limit or bound is None or not math.isfinite(float(bound)):
+                continue
+            scale_tolerance = 1e-7 * max(1.0, abs(float(bound)))
+            minuit_tolerance = 0.5 * error if fmin_at_limit else 0.0
+            if abs(value - float(bound)) <= max(scale_tolerance, minuit_tolerance):
+                return True
+    return False

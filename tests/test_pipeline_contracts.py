@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 
 import awkward as ak
+import numpy as np
 import pandas as pd
 
 from src.bronze.convert import build_bronze
@@ -43,7 +44,10 @@ def test_bronze_conversion_speed_for_20k_event_root(tmp_path, monkeypatch):
 
 def test_stage_all_completes_on_synthetic_2012_file(tmp_path, monkeypatch):
     _prepare_project_root(tmp_path, monkeypatch)
-    _write_synthetic_2012_root(ensure_parent(data_path("raw", "run2012bc_doublemuparked", "sample.root")))
+    _write_synthetic_2012_root(
+        ensure_parent(data_path("raw", "run2012bc_doublemuparked", "sample.root")),
+        n_events=20_000,
+    )
 
     start = time.monotonic()
     run_pipeline("run2012bc_doublemuparked", "all", max_batches=3)
@@ -69,15 +73,30 @@ def _prepare_project_root(tmp_path: Path, monkeypatch) -> None:
 def _write_synthetic_2012_root(path: Path, n_events: int = 3) -> None:
     import uproot
 
-    mass = _opening_angle_mass(JPSI_MASS_GEV)
+    if n_events > 3:
+        from src.physics.models import crystal_ball_pdf, exponential_pdf
+
+        rng = np.random.default_rng(20261028)
+        window = (2.8, 3.4)
+        edges = np.linspace(*window, 601)
+        centers = 0.5 * (edges[:-1] + edges[1:])
+        signal = crystal_ball_pdf(centers, {"mass": JPSI_MASS_GEV, "sigma": 0.03, "alpha": 1.5, "n": 3.0}, window)
+        background = exponential_pdf(centers, {"slope": -1.0 / (window[1] - window[0])}, window)
+        probabilities = 0.7 * signal + 0.3 * background
+        masses = rng.choice(centers, size=n_events, p=probabilities / probabilities.sum())
+    else:
+        masses = [_opening_angle_mass(JPSI_MASS_GEV)] * n_events
     pt = 10.0
-    dphi = math.acos(1.0 - ((mass**2 - 2.0 * MUON_MASS_GEV**2) / (2.0 * pt**2)))
+    dphis = [
+        math.acos(1.0 - ((mass**2 - 2.0 * MUON_MASS_GEV**2) / (2.0 * pt**2)))
+        for mass in masses
+    ]
     with uproot.recreate(path) as root_file:
         root_file["Events"] = {
             "nMuon": ak.Array([2] * n_events),
             "Muon_pt": ak.Array([[pt, pt]] * n_events),
             "Muon_eta": ak.Array([[0.0, 0.0]] * n_events),
-            "Muon_phi": ak.Array([[0.0, dphi]] * n_events),
+            "Muon_phi": ak.Array([[0.0, dphi] for dphi in dphis]),
             "Muon_mass": ak.Array([[MUON_MASS_GEV, MUON_MASS_GEV]] * n_events),
             "Muon_charge": ak.Array([[1, -1]] * n_events),
         }

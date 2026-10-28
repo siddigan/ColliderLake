@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import shutil
+from functools import lru_cache
 from pathlib import Path
 
 import awkward as ak
@@ -90,7 +91,7 @@ def _write_decay_fixture(path: Path, n_events: int, seed: int) -> None:
 
 def _jpsi_decay(rng: np.random.Generator) -> tuple[tuple[float, float, float, float, int], ...]:
     for _ in range(10_000):
-        mass = float(rng.normal(JPSI_MASS_GEV, 0.03))
+        mass = _sample_jpsi_mass(rng)
         pt_parent = float(rng.uniform(8.0, 20.0))
         rapidity = float(rng.uniform(-1.0, 1.0))
         phi_parent = float(rng.uniform(-math.pi, math.pi))
@@ -125,6 +126,26 @@ def _jpsi_decay(rng: np.random.Generator) -> tuple[tuple[float, float, float, fl
             assert abs(invariant_mass(*converted[0][:3], *converted[1][:3], MUON_MASS_GEV, MUON_MASS_GEV) - mass) < 1e-6
             return converted
     raise AssertionError("could not generate an accepted J/psi decay")
+
+
+def _sample_jpsi_mass(rng: np.random.Generator) -> float:
+    centers, cdf = _jpsi_mass_cdf()
+    return float(np.interp(rng.random(), cdf, centers))
+
+
+@lru_cache(maxsize=1)
+def _jpsi_mass_cdf() -> tuple[np.ndarray, np.ndarray]:
+    from src.physics.models import crystal_ball_pdf
+
+    centers = np.linspace(2.8, 3.4, 6001)
+    pdf = crystal_ball_pdf(
+        centers,
+        {"mass": JPSI_MASS_GEV, "sigma": 0.03, "alpha": 1.5, "n": 3.0},
+        (2.8, 3.4),
+    )
+    cdf = np.cumsum(pdf)
+    cdf /= cdf[-1]
+    return centers, cdf
 
 
 def _boost(momentum: np.ndarray, energy: float, beta: np.ndarray, gamma: float) -> tuple[float, np.ndarray]:
