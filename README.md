@@ -18,15 +18,31 @@ results to Particle Data Group reference values. Every output number traces
 back through a selection hash, a certification log, and a dataset DOI, and
 data-quality gates between layers stop bad data from propagating.
 
-```
-CERN Open Data (ROOT)                    configs/ (YAML: datasets, cuts, fits)
-        │                                          │
-        ▼                                          ▼
- raw ──► bronze ──► silver ──► gold ──► results ──► figures + PDG table
- (manifest) (Parquet) (certified) (dimuon pairs) (iminuit fits)
-        └────────── DQ gates at every boundary ──────────┘
- Orchestrated by Airflow DAGs wrapping a plain CLI core.
- Queryable end to end via DuckDB (colliderlake.db).
+```mermaid
+flowchart LR
+    ROOT["CERN Open Data<br/>ROOT files"] --> BRONZE["Bronze<br/>Parquet / source branches"]
+    BRONZE --> DQ1{"DQ gate"} --> SILVER["Silver<br/>certified / cleaned"]
+    SILVER --> DQ2{"DQ gate"} --> GOLD["Gold<br/>dimuon pairs"]
+    GOLD --> DQ3{"DQ gate"} --> FITS["Results<br/>iminuit fits"]
+    FITS --> OUTPUT["Figures +<br/>PDG table"]
+
+    CONFIG["YAML configs<br/>datasets / selections / fits"] -. configure .-> BRONZE
+    CONFIG -. configure .-> SILVER
+    CONFIG -. configure .-> GOLD
+    CONFIG -. configure .-> FITS
+
+    CLI["Airflow DAGs<br/>and plain CLI"] -. orchestrate .-> BRONZE
+    DB[("DuckDB<br/>colliderlake.db")] --- GOLD
+    DB --- FITS
+
+    classDef stage fill:#eef4ff,stroke:#315a9b,color:#152b4d,stroke-width:1.5px;
+    classDef gate fill:#fff4d6,stroke:#bb8612,color:#553d00,stroke-width:1.5px;
+    classDef input fill:#e9f7ef,stroke:#37875a,color:#173f27,stroke-width:1.5px;
+    classDef platform fill:#f3efff,stroke:#7455a6,color:#30204f,stroke-width:1.5px;
+    class BRONZE,SILVER,GOLD,FITS,OUTPUT stage;
+    class DQ1,DQ2,DQ3 gate;
+    class ROOT,CONFIG input;
+    class CLI,DB platform;
 ```
 
 ## Goal
