@@ -181,6 +181,9 @@ def test_fit_resonance_combines_gold_parts_before_fitting(tmp_path, monkeypatch)
         )
     configs = tmp_path / "configs/fits"
     configs.mkdir(parents=True)
+    (tmp_path / "configs/io.yaml").write_text(
+        "parquet:\n  results:\n    codec: zstd\n", encoding="utf-8"
+    )
     (configs / "resonance_ladder.yaml").write_text(
         """
 analysis: resonance

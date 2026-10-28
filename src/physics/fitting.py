@@ -14,8 +14,8 @@ from iminuit import Minuit
 
 from src.physics.models import ModelSpec, background_model, signal_model
 from src.physics.pdg import UPSILON_1S_MASS_GEV
-from src.utils.config import fit_config_id, load_yaml
-from src.utils.paths import PARQUET_COMPRESSION, config_path, data_dir, data_path, ensure_parent
+from src.utils.config import fit_config_id, load_yaml, parquet_write_options
+from src.utils.paths import config_path, data_dir, data_path, ensure_parent
 from src.utils.runlog import add_stage_stats, get_logger, safe_log
 
 
@@ -85,7 +85,9 @@ def fit_resonance(dataset_id: str) -> Path:
 
     output_dir = data_dir("results", "analysis=resonance", f"dataset={dataset_id}")
     pd.DataFrame(rows).to_parquet(
-        ensure_parent(output_dir / "fits.parquet"), index=False, compression=PARQUET_COMPRESSION
+        ensure_parent(output_dir / "fits.parquet"),
+        index=False,
+        **parquet_write_options("results"),
     )
     ensure_parent(output_dir / "fits.json").write_text(
         json.dumps(rows, indent=2, sort_keys=True), encoding="utf-8"

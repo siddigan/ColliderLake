@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -34,7 +35,9 @@ def dataset_config(dataset_id: str) -> dict[str, Any]:
     try:
         config = dict(datasets[dataset_id])
     except KeyError as exc:
-        raise KeyError(f"Unknown dataset {dataset_id!r}; expected one of {sorted(datasets)}") from exc
+        raise KeyError(
+            f"Unknown dataset {dataset_id!r}; expected one of {sorted(datasets)}"
+        ) from exc
     config["dataset_id"] = dataset_id
     return config
 
@@ -63,3 +66,21 @@ def fit_config_id(fit_config: dict[str, Any]) -> str:
     """Return the stable short hash for a resolved fit configuration."""
     payload = json.dumps(fit_config, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:8]
+
+
+@lru_cache(maxsize=8)
+def _io_config(path: str) -> dict[str, Any]:
+    return load_yaml(path)
+
+
+def parquet_write_options(layer: str) -> dict[str, Any]:
+    """Return configured PyArrow/Pandas compression options for a layer."""
+    io_config = _io_config(str(config_path("io.yaml")))
+    try:
+        setting = io_config["parquet"][layer]
+    except KeyError as exc:
+        raise KeyError(f"No Parquet codec configured for layer {layer!r}") from exc
+    options: dict[str, Any] = {"compression": str(setting["codec"])}
+    if "compression_level" in setting:
+        options["compression_level"] = int(setting["compression_level"])
+    return options

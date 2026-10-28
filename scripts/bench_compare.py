@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 from pathlib import Path
 
@@ -34,6 +35,15 @@ def main() -> None:
     parser.add_argument("old", type=Path)
     parser.add_argument("new", type=Path)
     args = parser.parse_args()
+    old_path = args.old.expanduser().resolve()
+    new_path = args.new.expanduser().resolve()
+    if old_path == new_path:
+        parser.error("refusing to compare a run summary with itself (same path)")
+    if _sha256(old_path) == _sha256(new_path):
+        parser.error("refusing to compare run summaries with identical content")
+    for label, path in (("old", old_path), ("new", new_path)):
+        for note in _notes(path):
+            print(f"# {label} {note}")
     old, old_total = _read_summary(args.old)
     new, new_total = _read_summary(args.new)
     print("stage | old (s) | new (s) | speedup | old rows/s | new rows/s")
@@ -45,7 +55,23 @@ def main() -> None:
         print(
             f"{stage} | {old_seconds:.3f} | {new_seconds:.3f} | {speedup:.3f}x | {old_rate:.2f} | {new_rate:.2f}"
         )
-    print(f"end-to-end | {old_total:.3f} | {new_total:.3f} | {old_total / new_total:.3f}x | — | —")
+    print(f"end-to-end | {old_total:.3f} | {new_total:.3f} | {old_total / new_total:.3f}x | - | -")
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _notes(path: Path) -> list[str]:
+    return [
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.lstrip().lower().startswith("note:")
+    ]
 
 
 if __name__ == "__main__":

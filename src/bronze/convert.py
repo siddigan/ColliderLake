@@ -10,8 +10,8 @@ from typing import Any
 import pandas as pd
 
 from src.acquire.local import manifest_entries
-from src.utils.config import dataset_config
-from src.utils.paths import PARQUET_COMPRESSION, data_dir, data_path, ensure_parent
+from src.utils.config import dataset_config, parquet_write_options
+from src.utils.paths import data_dir, data_path, ensure_parent
 from src.utils.runlog import add_stage_stats, format_duration, get_logger, safe_log
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
@@ -207,7 +207,7 @@ def _write_events(
         if _is_scalar_array(values):
             events[name] = values
     path = data_path("bronze", f"dataset={dataset_id}", "events") / part
-    events.to_parquet(ensure_parent(path), index=False, compression=PARQUET_COMPRESSION)
+    events.to_parquet(ensure_parent(path), index=False, **parquet_write_options("bronze"))
     return len(events)
 
 
@@ -253,7 +253,7 @@ def _write_muons(
             rows.append(row)
     muons = pd.DataFrame(rows)
     path = data_path("bronze", f"dataset={dataset_id}", "muons") / part
-    muons.to_parquet(ensure_parent(path), index=False, compression=PARQUET_COMPRESSION)
+    muons.to_parquet(ensure_parent(path), index=False, **parquet_write_options("bronze"))
     return len(muons)
 
 

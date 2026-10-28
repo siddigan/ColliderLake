@@ -15,8 +15,8 @@ import pyarrow.parquet as pq
 
 from src.physics.muons import delta_r, pair_kinematics
 from src.physics.pdg import MUON_MASS_GEV
-from src.utils.config import selection_for_dataset
-from src.utils.paths import PARQUET_COMPRESSION, data_dir, data_path, ensure_parent
+from src.utils.config import parquet_write_options, selection_for_dataset
+from src.utils.paths import data_dir, data_path, ensure_parent
 from src.utils.runlog import add_stage_stats, get_logger, safe_log
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
@@ -88,7 +88,7 @@ def build_gold(dataset_id: str) -> Path:
             output.to_parquet(
                 ensure_parent(output_dir / event_file.name),
                 index=False,
-                compression=PARQUET_COMPRESSION,
+                **parquet_write_options("gold"),
             )
             events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if not output.empty else 0
             if output.empty:
@@ -151,7 +151,9 @@ def _process_gold_part(
         output["pair_idx"] = output["pair_idx"].astype("int32")
     output_dir = data_dir("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
     output.to_parquet(
-        ensure_parent(output_dir / event_file.name), index=False, compression=PARQUET_COMPRESSION
+        ensure_parent(output_dir / event_file.name),
+        index=False,
+        **parquet_write_options("gold"),
     )
     events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if not output.empty else 0
     mass_range = (

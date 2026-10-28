@@ -1,0 +1,9 @@
+parquet:
+  bronze:
+    codec: snappy
+  silver:
+    codec: zstd
+  gold:
+    codec: zstd
+  results:
+    codec: zstd

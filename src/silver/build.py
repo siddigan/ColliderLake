@@ -11,9 +11,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from src.utils.config import dataset_config
+from src.utils.config import dataset_config, parquet_write_options
 from src.utils.paths import (
-    PARQUET_COMPRESSION,
     configured_data_path,
     data_dir,
     data_path,
@@ -70,7 +69,7 @@ def build_silver(dataset_id: str) -> Path:
             metrics["events_after"] += len(kept_events)
             out_events = data_path("silver", f"dataset={dataset_id}", "events") / event_file.name
             kept_events.to_parquet(
-                ensure_parent(out_events), index=False, compression=PARQUET_COMPRESSION
+                ensure_parent(out_events), index=False, **parquet_write_options("silver")
             )
 
             muons_before = 0
@@ -88,7 +87,7 @@ def build_silver(dataset_id: str) -> Path:
                 metrics["muons_after_eta"] += len(cleaned)
                 out_muons = data_path("silver", f"dataset={dataset_id}", "muons") / event_file.name
                 cleaned.to_parquet(
-                    ensure_parent(out_muons), index=False, compression=PARQUET_COMPRESSION
+                    ensure_parent(out_muons), index=False, **parquet_write_options("silver")
                 )
             certified_fraction = len(kept_events) / len(events) if len(events) else 0.0
             eta_drop_fraction = (
@@ -146,7 +145,9 @@ def _process_silver_part(
     kept_events = _apply_certification(events, config)
     kept_events = kept_events[kept_events["certified"].astype(bool)].reset_index(drop=True)
     out_events = data_path("silver", f"dataset={dataset_id}", "events") / event_file.name
-    kept_events.to_parquet(ensure_parent(out_events), index=False, compression=PARQUET_COMPRESSION)
+    kept_events.to_parquet(
+        ensure_parent(out_events), index=False, **parquet_write_options("silver")
+    )
     muons_before = muons_after_eta = 0
     muon_file = data_path("bronze", f"dataset={dataset_id}", "muons") / event_file.name
     if muon_file.exists():
@@ -155,7 +156,7 @@ def _process_silver_part(
         cleaned = cleaned_before_eta[cleaned_before_eta["eta"].abs() <= 2.4].reset_index(drop=True)
         muons_before, muons_after_eta = len(cleaned_before_eta), len(cleaned)
         out_muons = data_path("silver", f"dataset={dataset_id}", "muons") / event_file.name
-        cleaned.to_parquet(ensure_parent(out_muons), index=False, compression=PARQUET_COMPRESSION)
+        cleaned.to_parquet(ensure_parent(out_muons), index=False, **parquet_write_options("silver"))
     certified_fraction = len(kept_events) / len(events) if len(events) else 0.0
     eta_drop_fraction = (muons_before - muons_after_eta) / muons_before if muons_before else 0.0
     log = (

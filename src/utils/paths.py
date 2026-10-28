@@ -3,8 +3,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-PARQUET_COMPRESSION = "zstd"
-
 
 def project_root() -> Path:
     configured = os.environ.get("COLLIDERLAKE_ROOT")
