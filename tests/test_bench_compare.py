@@ -45,3 +45,21 @@ def test_compare_echoes_backfilled_notes(tmp_path, monkeypatch, capsys):
     output = capsys.readouterr().out
     assert "# old note: backfilled baseline: historical run" in output
     assert "# new note: new measured run" in output
+
+
+def test_hodoscope_record_ids_delegate_to_hodo_diff(tmp_path, monkeypatch, capsys):
+    from src.hodoscope.registry import run
+
+    monkeypatch.setenv("HODOSCOPE_ROOT", str(tmp_path))
+    with run("old", context_providers=[lambda: {"fit_window_z": [86, 96]}], root=tmp_path) as old, old.stage("fit") as stage:
+        stage.rows_out = 1
+    with run("new", context_providers=[lambda: {"fit_window_z": [70, 110]}], root=tmp_path) as new, new.stage("fit") as stage:
+        stage.rows_out = 1
+    monkeypatch.setattr(sys, "argv", ["bench_compare", old.run_id, new.run_id])
+    with pytest.raises(SystemExit) as result:
+        bench_compare.main()
+    assert result.value.code == 0
+    output = capsys.readouterr().out
+    assert "CONTEXT DELTAS" in output
+    assert "fit_window_z" in output
+    assert output.index("ANALYSIS INPUT CONTEXT DELTA") < output.index("STAGE TIMINGS")

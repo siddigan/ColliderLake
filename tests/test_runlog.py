@@ -103,7 +103,9 @@ def test_summary_file_matches_terminal_summary(tmp_path, monkeypatch, capsys):
     cli.run_pipeline("run2012bc_doublemuparked", "fit", quiet=True)
     terminal = capsys.readouterr().out
     written = (tmp_path / "artifacts" / "results" / "run_summary.txt").read_text(encoding="utf-8")
-    assert written == terminal
+    assert terminal.endswith(written)
+    assert "preflight fit_window z=[86.0, 96.0]" in terminal
+    assert written.startswith("run_id: ")
     assert "fit_config_id:" in written
 
 
@@ -114,7 +116,7 @@ def test_full_run_archives_timestamped_summary(tmp_path, monkeypatch, capsys):
     capsys.readouterr()
     archived = list((tmp_path / "artifacts" / "results" / "benchmarks").glob("run_summary_*.txt"))
     assert len(archived) == 1
-    assert archived[0].read_text(encoding="utf-8").startswith("ColliderLake run summary\n")
+    assert archived[0].read_text(encoding="utf-8").startswith("run_id: ")
 
 
 def test_logging_does_not_add_parquet_reads(tmp_path, monkeypatch):

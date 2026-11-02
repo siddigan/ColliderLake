@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import re
 from pathlib import Path
 
@@ -35,8 +36,22 @@ def main() -> None:
     parser.add_argument("old", type=Path)
     parser.add_argument("new", type=Path)
     args = parser.parse_args()
+    from src.utils.paths import data_path
+
+    registry_root = Path(os.environ.get("HODOSCOPE_ROOT", str(data_path("results"))))
     old_path = args.old.expanduser().resolve()
     new_path = args.new.expanduser().resolve()
+    if _looks_like_hodoscope_record(args.old) and _looks_like_hodoscope_record(args.new):
+        from src.hodoscope.cli import _diff
+
+        if "HODOSCOPE_ROOT" not in os.environ:
+            record_roots = [_record_root(args.old), _record_root(args.new)]
+            if record_roots[0] is not None and record_roots[0] == record_roots[1]:
+                registry_root = record_roots[0]
+
+        old_id = _record_identifier(args.old)
+        new_id = _record_identifier(args.new)
+        raise SystemExit(_diff(old_id, new_id, registry_root))
     if old_path == new_path:
         parser.error("refusing to compare a run summary with itself (same path)")
     if _sha256(old_path) == _sha256(new_path):
@@ -72,6 +87,42 @@ def _notes(path: Path) -> list[str]:
         for line in path.read_text(encoding="utf-8").splitlines()
         if line.lstrip().lower().startswith("note:")
     ]
+
+
+def _looks_like_hodoscope_record(value: Path) -> bool:
+    if value.is_dir() and (value / "run.json").is_file():
+        return True
+    if value.name == "run.json" and value.is_file():
+        return True
+    if not value.exists():
+        from src.hodoscope.registry import resolve_id
+        from src.utils.paths import data_path
+
+        try:
+            root = Path(os.environ.get("HODOSCOPE_ROOT", str(data_path("results"))))
+            resolve_id(value.name, root)
+            return True
+        except (KeyError, OSError, ValueError):
+            return False
+    return False
+
+
+def _record_identifier(value: Path) -> str:
+    path = value.expanduser()
+    if path.is_file() and path.name == "run.json":
+        return path.parent.name
+    if path.is_dir() and (path / "run.json").is_file():
+        return path.name
+    return str(value)
+
+
+def _record_root(value: Path) -> Path | None:
+    path = value.expanduser()
+    if path.is_file() and path.name == "run.json":
+        return path.parent.parent.parent
+    if path.is_dir() and (path / "run.json").is_file():
+        return path.parent.parent
+    return None
 
 
 if __name__ == "__main__":

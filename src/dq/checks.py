@@ -22,7 +22,9 @@ EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
 ROW_TOLERANCE = 0.05
 
 
-def run_dq(dataset_id: str, layer: str, table_path: Path) -> dict[str, Any]:
+def run_dq(
+    dataset_id: str, layer: str, table_path: Path, *, run_id: str | None = None
+) -> dict[str, Any]:
     logger = get_logger(layer)
     files = _parquet_files(table_path)
     report: dict[str, Any] = {
@@ -30,6 +32,8 @@ def run_dq(dataset_id: str, layer: str, table_path: Path) -> dict[str, Any]:
         "checked_at_utc": datetime.now(UTC).isoformat(), "rows": 0,
         "metrics": {}, "passed": True, "failures": [], "columns": {},
     }
+    if run_id is not None:
+        report["run_id"] = run_id
     if layer == "gold":
         try:
             _, selection, selection_id = selection_for_dataset(dataset_id)
