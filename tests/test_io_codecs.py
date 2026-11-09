@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 
 import pandas as pd
+import pytest
 
 from src.gold.dimuon import build_gold
 from src.silver.build import build_silver
@@ -10,7 +11,8 @@ from src.utils.config import parquet_write_options
 from src.utils.paths import data_path, ensure_parent
 
 
-def test_pipeline_reads_mixed_codec_parts(tmp_path, monkeypatch):
+@pytest.mark.parametrize("engine", ["vectorized", "duckdb"])
+def test_pipeline_reads_mixed_codec_parts(tmp_path, monkeypatch, engine):
     monkeypatch.setenv("COLLIDERLAKE_ROOT", str(tmp_path))
     monkeypatch.setenv("COLLIDERLAKE_DATA_ROOT", str(tmp_path / "artifacts"))
     monkeypatch.setenv("COLLIDERLAKE_WORKERS", "1")
@@ -63,7 +65,7 @@ def test_pipeline_reads_mixed_codec_parts(tmp_path, monkeypatch):
     # Make the silver event part Snappy while the muon part remains Zstd.
     events = pd.read_parquet(silver_events)
     events.to_parquet(silver_events, index=False, compression="snappy")
-    output = build_gold("run2012bc_doublemuparked")
+    output = build_gold("run2012bc_doublemuparked", engine=engine)
     pairs = pd.read_parquet(next(output.glob("*.parquet")))
     assert len(pairs) == 1
     assert parquet_write_options("bronze") == {"compression": "snappy"}

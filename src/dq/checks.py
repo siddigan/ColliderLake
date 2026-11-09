@@ -58,9 +58,15 @@ def run_dq(
         report["columns"][column] = "checked" if column in schema_columns else "not present"
     _require(not missing, f"missing required key column: {missing[0]}" if missing else "", report)
     for column in contract_columns:
-        if column not in schema_columns:
+        full_profile_present = (
+            column in schema_columns
+            or (f"mu1_{column}" in schema_columns and f"mu2_{column}" in schema_columns)
+        )
+        if not full_profile_present:
             report["columns"][column] = "not present"
             _require(False, f"contract violation: {column} required by profile {profile}", report)
+        else:
+            report["columns"][column] = "checked"
 
     checked = [c for c in ("pt", "eta", "phi", "iso", "mass") if c in schema_columns]
     for column in ("pt", "eta", "phi", "iso", "mass"):

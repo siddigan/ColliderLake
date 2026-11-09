@@ -30,6 +30,7 @@ datasets:
     doi: "10.7483/OPENDATA.CMS.4BUS.64MV"
     energy_tev: 13
     format: nanoaodv9_ul
+    gold_profile: nanoaod_full
     local_path: raw/run2016h_singlemuon
     event_identity: native
     certification:

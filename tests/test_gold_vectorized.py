@@ -22,8 +22,20 @@ SELECTION = {
 def test_vectorized_pairing_matches_frozen_reference():
     events = pd.DataFrame(
         [
-            {"dataset_id": "toy", "run": 1, "luminosityBlock": 1, "event": 1, "identity_mode": "synthetic"},
-            {"dataset_id": "toy", "run": 1, "luminosityBlock": 1, "event": 2, "identity_mode": "synthetic"},
+            {
+                "dataset_id": "toy",
+                "run": 1,
+                "luminosityBlock": 1,
+                "event": 1,
+                "identity_mode": "synthetic",
+            },
+            {
+                "dataset_id": "toy",
+                "run": 1,
+                "luminosityBlock": 1,
+                "event": 2,
+                "identity_mode": "synthetic",
+            },
         ]
     )
     muons = pd.DataFrame(
@@ -46,7 +58,9 @@ def test_vectorized_pairing_matches_frozen_reference():
     )
 
 
-def test_vectorized_gold_20k_events_under_five_seconds_and_records_peak_rss(tmp_path, monkeypatch, capsys):
+def test_vectorized_gold_20k_events_under_five_seconds_and_records_peak_rss(
+    tmp_path, monkeypatch, capsys
+):
     _prepare_project_root(tmp_path, monkeypatch)
     n_events = 20_000
     events = pd.DataFrame(
@@ -72,24 +86,39 @@ def test_vectorized_gold_20k_events_under_five_seconds_and_records_peak_rss(tmp_
             "charge": np.tile([1, -1], n_events),
         }
     )
-    events_path = ensure_parent(data_path("silver", "dataset=run2012bc_doublemuparked", "events", "part.parquet"))
-    muons_path = ensure_parent(data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet"))
+    events_path = ensure_parent(
+        data_path("silver", "dataset=run2012bc_doublemuparked", "events", "part.parquet")
+    )
+    muons_path = ensure_parent(
+        data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet")
+    )
     events.to_parquet(events_path, index=False)
     muons.to_parquet(muons_path, index=False)
 
     peak_kind, peak_before = _peak_rss_start()
     started = time.monotonic()
-    build_gold("run2012bc_doublemuparked")
+    gold_dir = build_gold("run2012bc_doublemuparked")
+    default_parquet = {path.name: path.read_bytes() for path in gold_dir.glob("*.parquet")}
     elapsed = time.monotonic() - started
     peak_bytes = _peak_rss_end(peak_kind, peak_before)
     print(f"gold vectorized: elapsed={elapsed:.3f}s peak_rss={peak_bytes}B")
     assert elapsed < 5.0
     assert capsys.readouterr().out.endswith("B\n")
+    build_gold("run2012bc_doublemuparked", engine="vectorized")
+    assert {path.name: path.read_bytes() for path in gold_dir.glob("*.parquet")} == default_parquet
 
 
 def test_pairing_rejects_more_than_sixteen_muons_with_event_key():
     events = pd.DataFrame(
-        [{"dataset_id": "toy", "run": 1, "luminosityBlock": 1, "event": 99, "identity_mode": "synthetic"}]
+        [
+            {
+                "dataset_id": "toy",
+                "run": 1,
+                "luminosityBlock": 1,
+                "event": 99,
+                "identity_mode": "synthetic",
+            }
+        ]
     )
     muons = pd.DataFrame(_muon_rows([(99, [10.0] * 17, [1, -1] * 8 + [1])]))
     try:
@@ -103,7 +132,15 @@ def test_pairing_rejects_more_than_sixteen_muons_with_event_key():
 
 def test_forty_muons_pass_default_tripwire_and_make_all_os_pairs():
     events = pd.DataFrame(
-        [{"dataset_id": "toy", "run": 1, "luminosityBlock": 1, "event": 101, "identity_mode": "synthetic"}]
+        [
+            {
+                "dataset_id": "toy",
+                "run": 1,
+                "luminosityBlock": 1,
+                "event": 101,
+                "identity_mode": "synthetic",
+            }
+        ]
     )
     charges = [1] * 20 + [-1] * 20
     muons = pd.DataFrame(_muon_rows([(101, [10.0] * 40, charges)]))

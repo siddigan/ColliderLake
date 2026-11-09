@@ -81,9 +81,24 @@ def _git_value(*args: str) -> str | None:
 def _git_context() -> dict[str, Any]:
     commit = _git_value("rev-parse", "HEAD")
     branch = _git_value("branch", "--show-current")
-    dirty = bool(_git_value("status", "--porcelain"))
-    changed = _git_value("status", "--porcelain") or ""
-    files = sorted({line[3:].strip() for line in changed.splitlines() if len(line) > 3})
+    try:
+        changed = subprocess.run(
+            ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=5,
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        changed = ""
+    files = sorted(
+        {
+            line[3:]
+            for line in changed.splitlines()
+            if len(line) >= 4 and line[2] == " " and line[3:]
+        }
+    )
+    dirty = bool(files)
     return {"commit": commit, "branch": branch, "dirty": dirty, "dirty_files": files}
 
 
@@ -102,12 +117,17 @@ def _environment(prefixes: Iterable[str]) -> dict[str, Any]:
 
 def _total_ram_gb() -> float | None:
     if os.name == "nt":
+
         class MemoryStatus(ctypes.Structure):
             _fields_ = [
-                ("length", ctypes.c_ulong), ("memory_load", ctypes.c_ulong),
-                ("total_phys", ctypes.c_ulonglong), ("avail_phys", ctypes.c_ulonglong),
-                ("total_page", ctypes.c_ulonglong), ("avail_page", ctypes.c_ulonglong),
-                ("total_virtual", ctypes.c_ulonglong), ("avail_virtual", ctypes.c_ulonglong),
+                ("length", ctypes.c_ulong),
+                ("memory_load", ctypes.c_ulong),
+                ("total_phys", ctypes.c_ulonglong),
+                ("avail_phys", ctypes.c_ulonglong),
+                ("total_page", ctypes.c_ulonglong),
+                ("avail_page", ctypes.c_ulonglong),
+                ("total_virtual", ctypes.c_ulonglong),
+                ("avail_virtual", ctypes.c_ulonglong),
                 ("avail_extended", ctypes.c_ulonglong),
             ]
 
@@ -176,9 +196,7 @@ class RunStage(AbstractContextManager):
                 "duration_s": duration,
                 "rows_out": self.rows_out,
                 "rows_per_s": (
-                    self.rows_out / duration
-                    if self.rows_out is not None and duration > 0
-                    else None
+                    self.rows_out / duration if self.rows_out is not None and duration > 0 else None
                 ),
                 "metrics": _json_value(self.metrics),
             }
@@ -357,7 +375,10 @@ class RunContext(AbstractContextManager):
             elif self.exit_code not in (None, 0):
                 self.data["state"] = "failed"
                 self.data["failure_scope"] = "run"
-                self.data["error"] = {"type": "ProcessExit", "message": f"exit code {self.exit_code}"}
+                self.data["error"] = {
+                    "type": "ProcessExit",
+                    "message": f"exit code {self.exit_code}",
+                }
             else:
                 self.data["state"] = "succeeded"
             self.data["ended_at"] = _utc_now()
@@ -399,7 +420,7 @@ def resolve_id(identifier: str, root: str | Path | None = None) -> str:
     record_path = runs_root(root) / identifier / "run.json"
     if record_path.is_file():
         return identifier
-    index = (Path(root or os.environ.get("HODOSCOPE_ROOT", "hodoscope_data")) / "tags.json")
+    index = Path(root or os.environ.get("HODOSCOPE_ROOT", "hodoscope_data")) / "tags.json"
     tags = json.loads(index.read_text(encoding="utf-8")) if index.is_file() else {}
     if identifier not in tags:
         raise KeyError(f"no run or tag named {identifier!r}")

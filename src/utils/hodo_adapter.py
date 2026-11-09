@@ -1,4 +1,5 @@
 """ColliderLake-specific context and preflight values for Hodoscope."""
+
 from __future__ import annotations
 
 import hashlib
@@ -8,18 +9,21 @@ from typing import Any
 
 from src.utils.config import (
     fit_config_id,
+    gold_engine,
     load_yaml,
     selection_for_dataset,
 )
 from src.utils.paths import config_path, data_root
 
 
-def resolved_inputs(dataset_id: str) -> dict[str, Any]:
+def resolved_inputs(dataset_id: str, engine: str | None = None) -> dict[str, Any]:
     _selection_path, _selection, selected_id = selection_for_dataset(dataset_id)
     fit_path = config_path("fits", "resonance_ladder.yaml")
     fit_config = load_yaml(fit_path)
     io_path = config_path("io.yaml")
     io_digest = hashlib.sha256(io_path.read_bytes()).hexdigest() if io_path.exists() else None
+    gold_path = config_path("gold.yaml")
+    gold_digest = hashlib.sha256(gold_path.read_bytes()).hexdigest() if gold_path.exists() else None
     requested_workers = os.environ.get("COLLIDERLAKE_WORKERS", "auto")
     cpu_limit = max(1, (multiprocessing.cpu_count() or 1) - 1)
     resolved_workers = (
@@ -29,29 +33,37 @@ def resolved_inputs(dataset_id: str) -> dict[str, Any]:
     )
     return {
         "dataset_id": dataset_id,
+        "engine": gold_engine(engine),
         "selection_id": selected_id,
         "fit_config_id": fit_config_id(fit_config),
-        "fit_windows": {
-            name: fit["window"] for name, fit in fit_config.get("fits", {}).items()
-        },
+        "fit_windows": {name: fit["window"] for name, fit in fit_config.get("fits", {}).items()},
         "io_config_sha256": io_digest,
+        "gold_config_sha256": gold_digest,
         "workers": resolved_workers,
         "workers_requested": requested_workers,
         "data_root": str(data_root().resolve()),
     }
 
 
-def context_provider(dataset_id: str):
+def context_provider(dataset_id: str, engine: str | None = None):
     def provider() -> dict[str, Any]:
-        inputs = resolved_inputs(dataset_id)
+        inputs = resolved_inputs(dataset_id, engine)
         return {
             "dataset_id": inputs["dataset_id"],
+            "engine": inputs["engine"],
             "selection_id": inputs["selection_id"],
             "fit_config_id": inputs["fit_config_id"],
             "io_config_sha256": inputs["io_config_sha256"],
+            "gold_config_sha256": inputs["gold_config_sha256"],
             "workers": inputs["workers"],
             "workers_requested": inputs["workers_requested"],
             "data_root": inputs["data_root"],
+            "fixture_size": os.environ.get(
+                "COLLIDERLAKE_BENCH_FIXTURE_SIZE", "configured silver input"
+            ),
+            "gold_max_parts": os.environ.get("COLLIDERLAKE_GOLD_MAX_PARTS", "all"),
+            "duckdb_threads": int(os.environ.get("COLLIDERLAKE_DUCKDB_THREADS", "2")),
+            "duckdb_memory_limit": os.environ.get("COLLIDERLAKE_DQ_MEM", "2GB"),
             **{f"fit_window_{key}": value for key, value in inputs["fit_windows"].items()},
         }
 
@@ -66,6 +78,7 @@ def preflight_values(run_id: str, inputs: dict[str, Any], git: dict[str, Any]) -
         "dirty": git.get("dirty", False),
         "dirty_files": git.get("dirty_files", []),
         "selection_id": inputs["selection_id"],
+        "engine": inputs.get("engine", "vectorized"),
         "fit_config_id": inputs["fit_config_id"],
         "fit_windows": inputs["fit_windows"],
         "workers": inputs["workers"],

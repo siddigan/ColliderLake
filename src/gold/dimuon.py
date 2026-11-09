@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 import traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from itertools import combinations
@@ -15,8 +16,14 @@ import pyarrow.parquet as pq
 
 from src.physics.muons import delta_r, pair_kinematics
 from src.physics.pdg import MUON_MASS_GEV
-from src.utils.config import parquet_write_options, selection_for_dataset
-from src.utils.paths import data_dir, data_path, ensure_parent
+from src.utils.config import (
+    dataset_config,
+    gold_engine,
+    load_yaml,
+    parquet_write_options,
+    selection_for_dataset,
+)
+from src.utils.paths import config_path, data_dir, data_path, ensure_parent
 from src.utils.runlog import add_stage_stats, get_logger, safe_log
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
@@ -24,9 +31,11 @@ LOGGER = get_logger("gold")
 _LOGGED_GLOBAL_MUON_NOOP = False
 
 
-def build_gold(dataset_id: str) -> Path:
+def build_gold(dataset_id: str, engine: str | None = None) -> Path:
     logger = get_logger("gold")
     _, selection, sel_id = selection_for_dataset(dataset_id)
+    engine = gold_engine(engine)
+    profile, required_columns = _gold_profile(dataset_id)
     safe_log(
         logger,
         logging.INFO,
@@ -44,13 +53,69 @@ def build_gold(dataset_id: str) -> Path:
         for path in sorted(silver_events_dir.glob("*.parquet"))
         if (silver_muons_dir / path.name).exists()
     ]
-    workers = _worker_count(len(event_files))
-    if workers > 1:
+    part_limit = os.environ.get("COLLIDERLAKE_GOLD_MAX_PARTS")
+    if part_limit:
+        limit = int(part_limit)
+        if limit < 1:
+            raise ValueError("COLLIDERLAKE_GOLD_MAX_PARTS must be positive")
+        event_files = event_files[:limit]
+    workers = _worker_count(len(event_files)) if engine == "vectorized" else 1
+    engine_metrics: dict[str, Any] = {"engine": engine, "parts": []}
+    if engine == "duckdb":
+        from src.gold.dimuon_duckdb import build_part, duckdb_session
+
+        cold_start_started = time.monotonic()
+        with duckdb_session() as connection:
+            for event_file in event_files:
+                muon_file = silver_muons_dir / event_file.name
+                events = pd.read_parquet(event_file)
+                output, query_seconds = build_part(
+                    event_file,
+                    muon_file,
+                    events,
+                    selection,
+                    sel_id,
+                    profile=profile,
+                    required_columns=required_columns,
+                    connection=connection,
+                )
+                output.to_parquet(
+                    ensure_parent(output_dir / event_file.name),
+                    index=False,
+                    **parquet_write_options("gold"),
+                )
+                part_rows = len(output)
+                events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if part_rows else 0
+                written += 1
+                add_stage_stats("gold", batches=1, rows_out=part_rows, events=events_with_pairs)
+                part_bytes = (output_dir / event_file.name).stat().st_size
+                engine_metrics["parts"].append(
+                    {
+                        "part": event_file.name,
+                        "query_seconds": query_seconds,
+                        "steady_state_query_seconds": query_seconds if written > 1 else None,
+                        "rows_out": part_rows,
+                        "output_bytes": part_bytes,
+                        "pairs_per_second": part_rows / query_seconds if query_seconds else None,
+                        "peak_rss_bytes": _peak_rss_bytes(),
+                    }
+                )
+                if written == 1:
+                    engine_metrics["cold_start_seconds"] = time.monotonic() - cold_start_started
+    elif workers > 1:
         completed: list[dict[str, Any]] = []
         failures: list[str] = []
         with ProcessPoolExecutor(max_workers=workers) as pool:
             futures = {
-                pool.submit(_process_gold_part, str(path), dataset_id, selection, sel_id): path
+                pool.submit(
+                    _process_gold_part,
+                    str(path),
+                    dataset_id,
+                    selection,
+                    sel_id,
+                    profile,
+                    required_columns,
+                ): path
                 for path in event_files
             }
             for future in as_completed(futures):
@@ -64,6 +129,19 @@ def build_gold(dataset_id: str) -> Path:
             safe_log(logger, logging.INFO, result["log"])
             add_stage_stats("gold", batches=1, rows_out=result["rows"], events=result["events"])
             written += 1
+            engine_metrics["parts"].append(
+                {
+                    key: result[key]
+                    for key in (
+                        "part",
+                        "query_seconds",
+                        "rows",
+                        "output_bytes",
+                        "pairs_per_second",
+                        "peak_rss_bytes",
+                    )
+                }
+            )
             multiplicity_metrics["muons_per_event_max"] = max(
                 multiplicity_metrics["muons_per_event_max"], result["muons_per_event_max"]
             )
@@ -81,7 +159,17 @@ def build_gold(dataset_id: str) -> Path:
                 multiplicity_metrics["muons_per_event_max"], part_metrics["muons_per_event_max"]
             )
             multiplicity_metrics["events_above_half_max"] += part_metrics["events_above_half_max"]
-            rows = _build_pairs_for_part(events, muons, selection, sel_id, event_file.name)
+            part_started = time.monotonic()
+            rows = _build_pairs_for_part(
+                events,
+                muons,
+                selection,
+                sel_id,
+                event_file.name,
+                profile=profile,
+                required_columns=required_columns,
+            )
+            query_seconds = time.monotonic() - part_started
             output = pd.DataFrame(rows)
             if not output.empty:
                 output["pair_idx"] = output["pair_idx"].astype("int32")
@@ -89,6 +177,17 @@ def build_gold(dataset_id: str) -> Path:
                 ensure_parent(output_dir / event_file.name),
                 index=False,
                 **parquet_write_options("gold"),
+            )
+            part_bytes = (output_dir / event_file.name).stat().st_size
+            engine_metrics["parts"].append(
+                {
+                    "part": event_file.name,
+                    "query_seconds": query_seconds,
+                    "rows": len(output),
+                    "output_bytes": part_bytes,
+                    "pairs_per_second": len(output) / query_seconds if query_seconds else None,
+                    "peak_rss_bytes": _peak_rss_bytes(),
+                }
             )
             events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if not output.empty else 0
             if output.empty:
@@ -111,7 +210,63 @@ def build_gold(dataset_id: str) -> Path:
     ensure_parent(output_dir / "multiplicity_metrics.json").write_text(
         json.dumps(multiplicity_metrics, indent=2, sort_keys=True), encoding="utf-8"
     )
+    ensure_parent(output_dir / "engine_metrics.json").write_text(
+        json.dumps(engine_metrics, indent=2, sort_keys=True), encoding="utf-8"
+    )
     return output_dir
+
+
+def _peak_rss_bytes() -> int:
+    import sys
+
+    if sys.platform == "win32":
+        import ctypes
+        from ctypes import wintypes
+
+        class Counters(ctypes.Structure):
+            _fields_ = [
+                ("cb", wintypes.DWORD),
+                ("PageFaultCount", wintypes.DWORD),
+                ("PeakWorkingSetSize", ctypes.c_size_t),
+                ("WorkingSetSize", ctypes.c_size_t),
+                ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                ("PagefileUsage", ctypes.c_size_t),
+                ("PeakPagefileUsage", ctypes.c_size_t),
+            ]
+
+        counters = Counters()
+        counters.cb = ctypes.sizeof(counters)
+        kernel32, psapi = ctypes.windll.kernel32, ctypes.windll.psapi
+        kernel32.GetCurrentProcess.restype = wintypes.HANDLE
+        psapi.GetProcessMemoryInfo.argtypes = [
+            wintypes.HANDLE,
+            ctypes.c_void_p,
+            wintypes.DWORD,
+        ]
+        psapi.GetProcessMemoryInfo.restype = wintypes.BOOL
+        process = kernel32.GetCurrentProcess()
+        if psapi.GetProcessMemoryInfo(process, ctypes.byref(counters), counters.cb):
+            return int(counters.PeakWorkingSetSize)
+        return 0
+    try:
+        import resource
+
+        peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        return int(peak * (1024 if sys.platform != "darwin" else 1))
+    except (ImportError, AttributeError, OSError):
+        return 0
+
+
+def _gold_profile(dataset_id: str) -> tuple[str, list[str]]:
+    profile = str(dataset_config(dataset_id).get("gold_profile", "reduced"))
+    contract_path = config_path("contracts", "gold_dimuon.yaml")
+    contract = load_yaml(contract_path).get("profiles", {})
+    if profile not in contract:
+        raise ValueError(f"unknown gold contract profile {profile!r}")
+    return profile, list(contract[profile].get("required_columns", []))
 
 
 def _worker_count(n_parts: int) -> int:
@@ -125,8 +280,14 @@ def _worker_count(n_parts: int) -> int:
 
 
 def _process_gold_part(
-    event_path: str, dataset_id: str, selection: dict[str, Any], sel_id: str
+    event_path: str,
+    dataset_id: str,
+    selection: dict[str, Any],
+    sel_id: str,
+    profile: str = "reduced",
+    required_columns: list[str] | None = None,
 ) -> dict[str, Any]:
+    part_started = time.monotonic()
     event_file = Path(event_path)
     muon_file = data_path("silver", f"dataset={dataset_id}", "muons") / event_file.name
     trigger_paths = list(selection.get("trigger", {}).get("paths", []))
@@ -144,7 +305,14 @@ def _process_gold_part(
     muons = pd.read_parquet(muon_file, columns=muon_columns)
     part_metrics = _multiplicity_metrics(muons, selection)
     rows = _build_pairs_for_part(
-        events, muons, selection, sel_id, event_file.name, emit_warnings=False
+        events,
+        muons,
+        selection,
+        sel_id,
+        event_file.name,
+        emit_warnings=False,
+        profile=profile,
+        required_columns=required_columns,
     )
     output = pd.DataFrame(rows)
     if not output.empty:
@@ -155,6 +323,7 @@ def _process_gold_part(
         index=False,
         **parquet_write_options("gold"),
     )
+    query_seconds = time.monotonic() - part_started
     events_with_pairs = len(output[EVENT_KEYS].drop_duplicates()) if not output.empty else 0
     mass_range = (
         "n/a" if output.empty else f"{output['mass'].min():.6g}Ã¢â‚¬â€œ{output['mass'].max():.6g}"
@@ -165,6 +334,10 @@ def _process_gold_part(
         "rows": len(output),
         "events": events_with_pairs,
         "log": log,
+        "query_seconds": query_seconds,
+        "output_bytes": (output_dir / event_file.name).stat().st_size,
+        "pairs_per_second": len(output) / query_seconds if query_seconds else None,
+        "peak_rss_bytes": _peak_rss_bytes(),
         **part_metrics,
     }
 
@@ -189,10 +362,18 @@ def _build_pairs_for_part(
     sel_id: str,
     part_name: str | None = None,
     emit_warnings: bool = True,
+    *,
+    profile: str = "reduced",
+    required_columns: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Build all pairs for one silver part without per-event Python loops."""
     if events.empty or muons.empty:
         return []
+    if profile == "nanoaod_full":
+        aliases = {"Muon_pfRelIso04_all": "iso"}
+        for required in required_columns or []:
+            if aliases.get(required, required) not in muons.columns:
+                raise ValueError(f"contract violation: {required} required by profile {profile}")
 
     paths = selection.get("trigger", {}).get("paths", [])
     event_frame = events.copy()
@@ -316,6 +497,14 @@ def _build_pairs_for_part(
         }
     )
     output["is_leading_pair"] = output["pair_idx"] == 0
+    if profile == "nanoaod_full":
+        aliases = {"Muon_pfRelIso04_all": "iso"}
+        for required in required_columns or []:
+            source = aliases.get(required, required)
+            if f"{source}_1" not in pairs or f"{source}_2" not in pairs:
+                raise ValueError(f"contract violation: {required} required by profile {profile}")
+            output[f"mu1_{required}"] = pairs[f"{source}_1"].to_numpy()
+            output[f"mu2_{required}"] = pairs[f"{source}_2"].to_numpy()
     return output.to_dict("records")
 
 

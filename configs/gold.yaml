@@ -1,0 +1,2 @@
+# Pair-building implementation. Keep vectorized as the stable default.
+engine: vectorized

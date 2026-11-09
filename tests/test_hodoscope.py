@@ -49,7 +49,10 @@ def test_exception_outside_stage_and_interrupted_display_are_honest(tmp_path, ca
     _show_run(interrupted.run_id)
     shown = capsys.readouterr().out
     assert "INTERRUPTED" in shown
-    assert json.loads((interrupted.run_dir / "run.json").read_text(encoding="utf-8"))["state"] == "running"
+    assert (
+        json.loads((interrupted.run_dir / "run.json").read_text(encoding="utf-8"))["state"]
+        == "running"
+    )
 
 
 def test_rows_per_second_null_and_atomic_stage_updates(tmp_path):
@@ -111,7 +114,9 @@ def test_two_concurrent_runs_have_separate_ids_and_logs(tmp_path):
         assert load_record(run_id, tmp_path)["state"] == "succeeded"
         artifacts = json.loads((log_path.parent / "artifacts.json").read_text(encoding="utf-8"))
         assert len(artifacts) == 1
-        assert Path(artifacts[0]["absolute_path"]).read_text(encoding="utf-8") == name.removeprefix("concurrent-")
+        assert Path(artifacts[0]["absolute_path"]).read_text(encoding="utf-8") == name.removeprefix(
+            "concurrent-"
+        )
 
 
 def test_tags_are_unique_and_resolve(tmp_path):
@@ -138,12 +143,19 @@ def test_sql_exposes_run_json_records(tmp_path, monkeypatch, capsys):
 
 def test_diff_refuses_identical_recorded_inputs(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("HODOSCOPE_ROOT", str(tmp_path))
+
     def provider():
         return {"fit_config_id": "abc", "fit_windows": {"z": [70, 110]}}
 
-    with run("one", context_providers=[provider], root=tmp_path) as record_a, record_a.stage("fit") as stage:
+    with (
+        run("one", context_providers=[provider], root=tmp_path) as record_a,
+        record_a.stage("fit") as stage,
+    ):
         stage.rows_out = 4
-    with run("two", context_providers=[provider], root=tmp_path) as record_b, record_b.stage("fit") as stage:
+    with (
+        run("two", context_providers=[provider], root=tmp_path) as record_b,
+        record_b.stage("fit") as stage,
+    ):
         stage.rows_out = 4
     # Normalize runtime-only git/environment fields for this exact-input case.
     for record in (record_a, record_b):
@@ -154,7 +166,11 @@ def test_diff_refuses_identical_recorded_inputs(tmp_path, monkeypatch, capsys):
         path.write_text(json.dumps(data), encoding="utf-8")
     assert _diff(record_a.run_id, record_b.run_id) == 2
     out = capsys.readouterr()
-    assert out.out.index("CODE DELTAS") < out.out.index("CONTEXT DELTAS") < out.out.index("ENVIRONMENT")
+    assert (
+        out.out.index("CODE DELTAS")
+        < out.out.index("CONTEXT DELTAS")
+        < out.out.index("ENVIRONMENT")
+    )
     assert "analysis inputs are identical" in out.out
     assert "Refusing timing comparison" in out.err
 
@@ -257,8 +273,13 @@ def test_compatibility_pointers_move_after_canonical_run_is_saved(tmp_path, monk
     second_summary = (data_root / "results" / "run_summary.txt").read_text(encoding="utf-8")
     second_id = second_summary.splitlines()[0].split()[1]
     pointer = json.loads(
-        (data_root / "results" / "analysis=resonance" / "dataset=run2012bc_doublemuparked" / "fits.json")
-        .read_text(encoding="utf-8")
+        (
+            data_root
+            / "results"
+            / "analysis=resonance"
+            / "dataset=run2012bc_doublemuparked"
+            / "fits.json"
+        ).read_text(encoding="utf-8")
     )
     assert second_id != first_id
     assert pointer["_hodoscope"]["run_id"] == second_id
@@ -298,7 +319,9 @@ def test_strict_dirty_preflight_aborts_and_records_commit_and_files(tmp_path, mo
         "_git_context",
         lambda: {"commit": "abc123", "branch": "test", "dirty": True, "dirty_files": ["x.py"]},
     )
-    monkeypatch.setattr(colliderlake_cli, "_run_stage", lambda *_args, **_kwargs: pytest.fail("stage ran"))
+    monkeypatch.setattr(
+        colliderlake_cli, "_run_stage", lambda *_args, **_kwargs: pytest.fail("stage ran")
+    )
     colliderlake_cli.run_pipeline("run2012bc_doublemuparked", "fit", strict=True, quiet=True)
     capsys.readouterr()
     record = all_records(root / "results")[0]
@@ -306,6 +329,27 @@ def test_strict_dirty_preflight_aborts_and_records_commit_and_files(tmp_path, mo
     assert record["preflight"]["commit"] == "abc123"
     assert record["preflight"]["dirty_files"] == ["x.py"]
     assert "--strict" in record["abort_reason"]
+
+
+def test_git_dirty_paths_preserve_full_relative_path(monkeypatch):
+    from src.hodoscope import registry
+
+    def fake_run(command, **_kwargs):
+        class Result:
+            stdout = "commit\n"
+
+        if command[1:3] == ["branch", "--show-current"]:
+            Result.stdout = "main\n"
+        elif command[1:3] == ["status", "--porcelain=v1"]:
+            Result.stdout = " M configs/fits/resonance_ladder.yaml\n?? tests/test full path.py\n"
+        return Result()
+
+    monkeypatch.setattr(registry.subprocess, "run", fake_run)
+    context = registry._git_context()
+    assert context["dirty_files"] == [
+        "configs/fits/resonance_ladder.yaml",
+        "tests/test full path.py",
+    ]
 
 
 def test_diff_reports_environment_only_delta_without_refusing(tmp_path, monkeypatch, capsys):
@@ -332,7 +376,6 @@ def test_diff_reports_environment_only_delta_without_refusing(tmp_path, monkeypa
     assert "Refusing timing comparison" not in captured.err
 
 
-
 def test_hodoscope_import_boundary_and_module_invocation():
     package = Path("src/hodoscope")
     allowed_external = set(sys.stdlib_module_names) | {"duckdb"}
@@ -349,6 +392,9 @@ def test_hodoscope_import_boundary_and_module_invocation():
                     imported.append(node.module)
             for name in imported:
                 assert name.partition(".")[0] in allowed_external, (path, imported)
-    for args in ([sys.executable, "-m", "hodoscope", "--help"], [sys.executable, "-m", "src.hodoscope", "--help"]):
+    for args in (
+        [sys.executable, "-m", "hodoscope", "--help"],
+        [sys.executable, "-m", "src.hodoscope", "--help"],
+    ):
         result = subprocess.run(args, capture_output=True, text=True, check=False)
         assert result.returncode == 0

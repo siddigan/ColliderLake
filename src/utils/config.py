@@ -84,3 +84,11 @@ def parquet_write_options(layer: str) -> dict[str, Any]:
     if "compression_level" in setting:
         options["compression_level"] = int(setting["compression_level"])
     return options
+
+
+def gold_engine(override: str | None = None) -> str:
+    configured = load_yaml(config_path("gold.yaml")).get("engine", "vectorized")
+    engine = override or configured
+    if engine not in {"vectorized", "duckdb"}:
+        raise ValueError("gold engine must be 'vectorized' or 'duckdb'")
+    return str(engine)

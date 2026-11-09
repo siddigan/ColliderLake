@@ -6,6 +6,7 @@ from pathlib import Path
 import awkward as ak
 import numpy as np
 import pandas as pd
+import pytest
 
 from src.bronze.convert import build_bronze
 from src.cli import run_pipeline
@@ -16,7 +17,9 @@ from tests.fit_assertions import assert_valid_fit
 
 def test_synthetic_identity_bronze_for_2012_six_branch_root(tmp_path, monkeypatch):
     _prepare_project_root(tmp_path, monkeypatch)
-    _write_synthetic_2012_root(ensure_parent(data_path("raw", "run2012bc_doublemuparked", "sample.root")))
+    _write_synthetic_2012_root(
+        ensure_parent(data_path("raw", "run2012bc_doublemuparked", "sample.root"))
+    )
 
     bronze_root = build_bronze("run2012bc_doublemuparked", max_batches=2)
     events = pd.read_parquet(bronze_root / "events/sample_part_0000.parquet")
@@ -42,7 +45,8 @@ def test_bronze_conversion_speed_for_20k_event_root(tmp_path, monkeypatch):
     assert elapsed < 2.0
 
 
-def test_stage_all_completes_on_synthetic_2012_file(tmp_path, monkeypatch):
+@pytest.mark.parametrize("engine", ["vectorized", "duckdb"])
+def test_stage_all_completes_on_synthetic_2012_file(tmp_path, monkeypatch, engine):
     _prepare_project_root(tmp_path, monkeypatch)
     _write_synthetic_2012_root(
         ensure_parent(data_path("raw", "run2012bc_doublemuparked", "sample.root")),
@@ -50,17 +54,27 @@ def test_stage_all_completes_on_synthetic_2012_file(tmp_path, monkeypatch):
     )
 
     start = time.monotonic()
-    run_pipeline("run2012bc_doublemuparked", "all", max_batches=3)
+    run_pipeline("run2012bc_doublemuparked", "all", max_batches=3, engine=engine)
     elapsed = time.monotonic() - start
 
     fits = pd.read_parquet(
-        data_path("results", "analysis=resonance", "dataset=run2012bc_doublemuparked", "fits.parquet")
+        data_path(
+            "results", "analysis=resonance", "dataset=run2012bc_doublemuparked", "fits.parquet"
+        )
     )
     jpsi_rows = fits[fits["resonance"] == "jpsi"]
     assert len(jpsi_rows) == 1
     jpsi = jpsi_rows.iloc[0]
     assert_valid_fit(jpsi, JPSI_MASS_GEV, 0.05)
     assert elapsed < 60.0
+    from src.hodoscope.registry import all_records
+
+    record = all_records(data_path("results"))[-1]
+    assert record["context"]["colliderlake_inputs"]["engine"] == engine
+    gold_stage = next(item for item in record["stages"] if item["name"] == "gold")
+    assert gold_stage["metrics"]["engine"] == engine
+    assert gold_stage["metrics"]["parts"]
+    assert all(part["output_bytes"] > 0 for part in gold_stage["metrics"]["parts"])
 
 
 def _prepare_project_root(tmp_path: Path, monkeypatch) -> None:
@@ -80,7 +94,9 @@ def _write_synthetic_2012_root(path: Path, n_events: int = 3) -> None:
         window = (2.8, 3.4)
         edges = np.linspace(*window, 601)
         centers = 0.5 * (edges[:-1] + edges[1:])
-        signal = crystal_ball_pdf(centers, {"mass": JPSI_MASS_GEV, "sigma": 0.03, "alpha": 1.5, "n": 3.0}, window)
+        signal = crystal_ball_pdf(
+            centers, {"mass": JPSI_MASS_GEV, "sigma": 0.03, "alpha": 1.5, "n": 3.0}, window
+        )
         background = exponential_pdf(centers, {"slope": -1.0 / (window[1] - window[0])}, window)
         probabilities = 0.7 * signal + 0.3 * background
         masses = rng.choice(centers, size=n_events, p=probabilities / probabilities.sum())
@@ -88,8 +104,7 @@ def _write_synthetic_2012_root(path: Path, n_events: int = 3) -> None:
         masses = [_opening_angle_mass(JPSI_MASS_GEV)] * n_events
     pt = 10.0
     dphis = [
-        math.acos(1.0 - ((mass**2 - 2.0 * MUON_MASS_GEV**2) / (2.0 * pt**2)))
-        for mass in masses
+        math.acos(1.0 - ((mass**2 - 2.0 * MUON_MASS_GEV**2) / (2.0 * pt**2))) for mass in masses
     ]
     with uproot.recreate(path) as root_file:
         root_file["Events"] = {
