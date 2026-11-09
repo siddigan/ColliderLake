@@ -1,0 +1,11 @@
+ladder:
+  mass_min_gev: 0.25
+  mass_max_gev: 300.0
+  log_bins: 400
+  trigger_artifact_mass_gev: 30.0
+  trigger_artifact_label: trigger artifact
+panels:
+  pull_reference_sigma: 3.0
+style:
+  figure_dpi: 300
+  serif_family: serif

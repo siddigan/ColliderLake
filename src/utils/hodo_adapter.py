@@ -26,6 +26,10 @@ def resolved_inputs(
     io_digest = hashlib.sha256(io_path.read_bytes()).hexdigest() if io_path.exists() else None
     gold_path = config_path("gold.yaml")
     gold_digest = hashlib.sha256(gold_path.read_bytes()).hexdigest() if gold_path.exists() else None
+    figures_path = config_path("figures.yaml")
+    figures_digest = (
+        hashlib.sha256(figures_path.read_bytes()).hexdigest() if figures_path.exists() else None
+    )
     requested_workers = os.environ.get("COLLIDERLAKE_WORKERS", "auto")
     cpu_limit = max(1, (multiprocessing.cpu_count() or 1) - 1)
     resolved_workers = (
@@ -42,6 +46,7 @@ def resolved_inputs(
         "fit_windows": {name: fit["window"] for name, fit in fit_config.get("fits", {}).items()},
         "io_config_sha256": io_digest,
         "gold_config_sha256": gold_digest,
+        "figures_config_sha256": figures_digest,
         "workers": resolved_workers,
         "workers_requested": requested_workers,
         "data_root": str(data_root().resolve()),
@@ -59,6 +64,7 @@ def context_provider(dataset_id: str, engine: str | None = None, analysis: str |
             "fit_config_id": inputs["fit_config_id"],
             "io_config_sha256": inputs["io_config_sha256"],
             "gold_config_sha256": inputs["gold_config_sha256"],
+            "figures_config_sha256": inputs["figures_config_sha256"],
             "workers": inputs["workers"],
             "workers_requested": inputs["workers_requested"],
             "data_root": inputs["data_root"],

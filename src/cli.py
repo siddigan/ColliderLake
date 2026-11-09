@@ -34,7 +34,7 @@ from src.utils.runlog import (
     stage_stats,
 )
 
-STAGES = ("acquire", "bronze", "silver", "gold", "fit", "all")
+STAGES = ("acquire", "bronze", "silver", "gold", "fit", "figures", "all")
 
 
 @dataclass
@@ -61,6 +61,9 @@ def main() -> int:
         "--analysis", help="Selection analysis name when a dataset has multiple selections"
     )
     run.add_argument("--strict", action="store_true")
+    figures = sub.add_parser("figures", help="Render figures from an existing fits Parquet file")
+    figures.add_argument("--run", required=True, dest="fits_path", help="Path to fits.parquet")
+    figures.add_argument("--gold", help="Optional gold Parquet file or directory")
     clam = sub.add_parser("clam", help="ColliderLake Acquisition Manager")
     clam.add_argument("--verbose", action="store_true")
     clam.add_argument("--quiet", action="store_true")
@@ -97,6 +100,11 @@ def main() -> int:
             quiet=getattr(args, "quiet", False), verbose=getattr(args, "verbose", False)
         )
         run_clam(args)
+    elif args.command == "figures":
+        from src.figures.ladder import run_figures_recorded
+
+        output = run_figures_recorded(args.fits_path, gold_path=args.gold)
+        print(output["canonical_dir"])
     return 0
 
 
@@ -173,10 +181,14 @@ def _print_preflight(values: dict[str, object], *, quiet: bool) -> None:
         f"workers={values['workers']} data_root={values['data_root']}"
     )
     if values.get("dirty"):
-        summary += " DIRTY=" + ",".join(values.get("dirty_files", []))
+        dirty_files = values.get("dirty_files", [])
+        if isinstance(dirty_files, (list, tuple)):
+            summary += " DIRTY=" + ",".join(str(path) for path in dirty_files)
     print(summary, file=sys.stderr if values.get("dirty") else sys.stdout)
-    for resonance, window in values["fit_windows"].items():
-        print(f"preflight fit_window {resonance}={window}")
+    fit_windows = values.get("fit_windows", {})
+    if isinstance(fit_windows, dict):
+        for resonance, window in fit_windows.items():
+            print(f"preflight fit_window {resonance}={window}")
 
 
 def _execute_pipeline(
@@ -211,7 +223,13 @@ def _execute_pipeline(
             rss_monitor = PeakProcessTreeRSS().start()
             try:
                 output = _run_stage(
-                    item, dataset_id, max_batches, recorder.run_id, engine, analysis
+                    item,
+                    dataset_id,
+                    max_batches,
+                    recorder.run_id,
+                    engine,
+                    analysis,
+                    recorder.run_dir,
                 )
                 elapsed = time.monotonic() - stage_started
                 hstage.metric("peak_rss_bytes", rss_monitor.stop())
@@ -225,6 +243,17 @@ def _execute_pipeline(
                         engine_metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
                         for key, value in engine_metrics.items():
                             hstage.metric(key, value)
+                if item == "figures" and output is not None:
+                    manifest_path = Path(output) / "manifest.json"
+                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                    hstage.metric("figure_files", manifest["files"])
+                    hstage.metric("figure_inputs", manifest["inputs"])
+                    for artifact in manifest["files"]:
+                        if artifact["location"] == "canonical":
+                            recorder.artifact(Path(output) / artifact["name"])
+                    recorder.artifact(manifest_path)
+                    pointer_dir = data_path("results", "figures", recorder.run_id)
+                    recorder.external(pointer_dir, run_id=recorder.run_id)
                 hstage.__exit__(None, None, None)
                 safe_log(
                     logger,
@@ -356,6 +385,7 @@ def _run_stage(
     run_id: str | None = None,
     engine: str | None = None,
     analysis: str | None = None,
+    run_dir: Path | None = None,
 ) -> Path | None:
     if item == "acquire":
         return acquire_dataset(dataset_id)
@@ -375,6 +405,19 @@ def _run_stage(
         if analysis is not None and analysis != "resonance":
             raise ValueError("fit stage currently supports only analysis='resonance'")
         return fit_resonance(dataset_id)
+    if item == "figures":
+        if run_id is None or run_dir is None:
+            raise ValueError("figures stage requires an active hodoscope run")
+        from src.figures.ladder import fits_path_for_dataset, generate_figures
+
+        fit_path = fits_path_for_dataset(dataset_id, analysis or "resonance")
+        output = generate_figures(
+            fit_path,
+            run_id=run_id,
+            canonical_dir=run_dir / "figures",
+            results_dir=data_path("results", "figures", run_id),
+        )
+        return Path(output["canonical_dir"])
     raise ValueError(f"Unknown stage {item!r}")
 
 

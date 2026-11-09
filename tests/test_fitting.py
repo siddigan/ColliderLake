@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -25,6 +27,9 @@ def test_gaussian_exponential_fit_recovers_jpsi_mass():
         masses,
     )
     assert_valid_fit(result, JPSI_MASS_GEV, 0.05)
+    assert result["signal_model"] == "gaussian"
+    assert result["background_model"] == "exponential"
+    assert "mass" in json.loads(result["fit_parameters_json"])
     assert abs(result["mass_fit"] - JPSI_MASS_GEV) < 3.0 * result["mass_stat_unc"]
     assert abs(result["mass_fit"] - JPSI_MASS_GEV) < 0.01
     assert result["gof_flag"] == ("poor" if result["chi2"] / result["ndf"] > 5.0 else "ok")

@@ -40,7 +40,7 @@ def fit_resonance(dataset_id: str) -> Path:
     selection_id = str(first_metadata.column(0)[0].as_py()) if first_metadata.num_rows else ""
     rows: list[dict[str, Any]] = []
     for resonance, fit_config in config["fits"].items():
-        window = tuple(float(value) for value in fit_config["window"])
+        window = (float(fit_config["window"][0]), float(fit_config["window"][1]))
         entries = _count_in_window(masses, window)
         safe_log(
             logger,
@@ -153,6 +153,9 @@ def fit_masses(
         "selection_id": selection_id,
         "n_bins": n_bins,
         "window": [window[0], window[1]],
+        "signal_model": str(config["signal"]),
+        "background_model": str(config["background"]),
+        "fit_parameters_json": json.dumps(values, sort_keys=True),
     }
 
 
