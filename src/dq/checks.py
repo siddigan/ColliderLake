@@ -23,25 +23,38 @@ ROW_TOLERANCE = 0.05
 
 
 def run_dq(
-    dataset_id: str, layer: str, table_path: Path, *, run_id: str | None = None
+    dataset_id: str,
+    layer: str,
+    table_path: Path,
+    *,
+    run_id: str | None = None,
+    analysis: str | None = None,
 ) -> dict[str, Any]:
     logger = get_logger(layer)
     files = _parquet_files(table_path)
     report: dict[str, Any] = {
-        "dataset_id": dataset_id, "layer": layer,
-        "checked_at_utc": datetime.now(UTC).isoformat(), "rows": 0,
-        "metrics": {}, "passed": True, "failures": [], "columns": {},
+        "dataset_id": dataset_id,
+        "layer": layer,
+        "checked_at_utc": datetime.now(UTC).isoformat(),
+        "rows": 0,
+        "metrics": {},
+        "passed": True,
+        "failures": [],
+        "columns": {},
     }
     if run_id is not None:
         report["run_id"] = run_id
     if layer == "gold":
         try:
-            _, selection, selection_id = selection_for_dataset(dataset_id)
+            _, selection, selection_id = selection_for_dataset(dataset_id, analysis)
         except KeyError:
             selection, selection_id = {}, None
         if selection_id is not None:
             report["selection_id"] = selection_id
-            report["metrics"]["max_muons_per_event"] = int(selection.get("max_muons_per_event", 128))
+            report["analysis"] = selection.get("analysis", "resonance")
+            report["metrics"]["max_muons_per_event"] = int(
+                selection.get("max_muons_per_event", 128)
+            )
     if layer == "silver":
         report["metrics"].update(
             muons_per_event_max=0,
@@ -58,9 +71,8 @@ def run_dq(
         report["columns"][column] = "checked" if column in schema_columns else "not present"
     _require(not missing, f"missing required key column: {missing[0]}" if missing else "", report)
     for column in contract_columns:
-        full_profile_present = (
-            column in schema_columns
-            or (f"mu1_{column}" in schema_columns and f"mu2_{column}" in schema_columns)
+        full_profile_present = column in schema_columns or (
+            f"mu1_{column}" in schema_columns and f"mu2_{column}" in schema_columns
         )
         if not full_profile_present:
             report["columns"][column] = "not present"
@@ -68,17 +80,24 @@ def run_dq(
         else:
             report["columns"][column] = "checked"
 
+    order_check_columns = (
+        [c for c in ("mu1_pt", "mu2_pt") if c in schema_columns]
+        if layer == "gold" and profile == "nanoaod_full"
+        else []
+    )
     checked = [c for c in ("pt", "eta", "phi", "iso", "mass") if c in schema_columns]
     for column in ("pt", "eta", "phi", "iso", "mass"):
         report["columns"][column] = "checked" if column in schema_columns else "not present"
+    for column in order_check_columns:
+        report["columns"][column] = "checked"
     for column in schema_columns:
         report["columns"].setdefault(column, "not present" if column in {"iso"} else "skipped")
     report["columns"].setdefault("iso", "not present")
 
-    multiplicity_threshold = _muon_multiplicity_threshold(dataset_id)
+    multiplicity_threshold = _muon_multiplicity_threshold(dataset_id, analysis)
     for file in files:
         available = set(_schema_columns([file]))
-        projection = [c for c in keys + checked if c in available]
+        projection = [c for c in keys + checked + order_check_columns if c in available]
         frame = pd.read_parquet(file, columns=projection)
         report["rows"] += len(frame)
         for key in keys:
@@ -88,7 +107,7 @@ def run_dq(
                 report["metrics"]["null_key_counts"][key] += null_count
                 if null_count:
                     _require(False, f"no nulls in {key}", report)
-        _check_physics(frame, layer, report)
+        _check_physics(frame, layer, report, profile)
         if layer == "silver" and "muon_idx" in frame and all(key in frame for key in EVENT_KEYS):
             counts = frame.groupby(EVENT_KEYS, sort=False).size()
             part_max = int(counts.max()) if not counts.empty else 0
@@ -118,15 +137,30 @@ def run_dq(
                 )
     _require(report["rows"] > 0, "nonzero rows", report)
 
-    dup_count = _duplicate_count_duckdb(files, keys, data_dir("tmp")) if files and not missing else 0
+    dup_count = (
+        _duplicate_count_duckdb(files, keys, data_dir("tmp")) if files and not missing else 0
+    )
     report["metrics"]["duplicate_key_count"] = dup_count
     if dup_count:
         _require(False, f"duplicate key count: {dup_count}", report)
     _add_certification_metrics(dataset_id, layer, report)
+    if layer == "bronze":
+        audit_path = data_path("bronze", f"dataset={dataset_id}", "branch_audit.json")
+        if audit_path.is_file():
+            audit = json.loads(audit_path.read_text(encoding="utf-8"))
+            report["metrics"]["branch_audit"] = audit
+            for branch in audit.get("missing_required_branches", []):
+                _require(
+                    False,
+                    f"contract violation: required source branch {branch} is missing",
+                    report,
+                )
     _check_row_count_history(report)
     append_report(report)
     if not report["passed"]:
-        safe_log(logger, logging.ERROR, "DQ %s FAIL | %s | halting", layer, "; ".join(report["failures"]))
+        safe_log(
+            logger, logging.ERROR, "DQ %s FAIL | %s | halting", layer, "; ".join(report["failures"])
+        )
         raise RuntimeError(f"DQ failed for {dataset_id} {layer}: {report['failures']}")
     safe_log(logger, logging.INFO, "DQ %s PASS | %d checks", layer, _check_count(layer))
     return report
@@ -141,9 +175,9 @@ def _schema_columns(files: list[Path]) -> list[str]:
     return columns
 
 
-def _muon_multiplicity_threshold(dataset_id: str) -> int:
+def _muon_multiplicity_threshold(dataset_id: str, analysis: str | None = None) -> int:
     try:
-        _, selection, _ = selection_for_dataset(dataset_id)
+        _, selection, _ = selection_for_dataset(dataset_id, analysis)
     except KeyError:
         return 128
     return int(selection.get("max_muons_per_event", 128))
@@ -168,7 +202,10 @@ def _contract_columns(dataset_id: str, layer: str) -> tuple[str | None, list[str
 
 
 def _duplicate_count_duckdb(
-    files: list[Path], keys: list[str], temp_root: Path, memory_limit: str | None = None,
+    files: list[Path],
+    keys: list[str],
+    temp_root: Path,
+    memory_limit: str | None = None,
     settings_observer: Any = None,
 ) -> int:
     if not keys:
@@ -179,7 +216,10 @@ def _duplicate_count_duckdb(
     source = "[" + ",".join("'" + p + "'" for p in paths) + "]"
     quoted = ", ".join('"' + k + '"' for k in keys)
     configured_memory = memory_limit or os.environ.get("COLLIDERLAKE_DQ_MEM", "2GB")
-    with tempfile.TemporaryDirectory(prefix="dq-spill-", dir=temp_root) as spill, duckdb.connect() as con:
+    with (
+        tempfile.TemporaryDirectory(prefix="dq-spill-", dir=temp_root) as spill,
+        duckdb.connect() as con,
+    ):
         con.execute("SET memory_limit = ?", [configured_memory])
         con.execute("SET temp_directory = ?", [spill])
         con.execute("SET preserve_insertion_order = false")
@@ -195,8 +235,9 @@ def _duplicate_count_duckdb(
         query = (
             f"SELECT COALESCE(SUM(c - 1), 0) FROM (SELECT COUNT(*) AS c "
             f"FROM read_parquet({source}, union_by_name=true) "
-            f"WHERE " + " AND ".join(f'"{k}" IS NOT NULL' for k in keys) +
-            f" GROUP BY {quoted} HAVING COUNT(*) > 1)"
+            f"WHERE "
+            + " AND ".join(f'"{k}" IS NOT NULL' for k in keys)
+            + f" GROUP BY {quoted} HAVING COUNT(*) > 1)"
         )
         return int(con.execute(query).fetchone()[0])
 
@@ -207,7 +248,9 @@ def append_report(entry: dict[str, Any]) -> None:
     if output.exists():
         history = json.loads(output.read_text(encoding="utf-8"))
     history.append(entry)
-    ensure_parent(output).write_text(json.dumps(history, indent=2, sort_keys=True), encoding="utf-8")
+    ensure_parent(output).write_text(
+        json.dumps(history, indent=2, sort_keys=True), encoding="utf-8"
+    )
 
 
 def dq_report_path() -> Path:
@@ -220,7 +263,9 @@ def _parquet_files(path: Path) -> list[Path]:
     return sorted(path.rglob("*.parquet"))
 
 
-def _check_physics(frame: pd.DataFrame, layer: str, report: dict[str, Any]) -> None:
+def _check_physics(
+    frame: pd.DataFrame, layer: str, report: dict[str, Any], profile: str | None = None
+) -> None:
     checks: list[tuple[str, pd.Series]] = []
     if "pt" in frame:
         checks.append(("muon pt > 0", np.isfinite(frame["pt"]) & (frame["pt"] > 0.0)))
@@ -236,6 +281,8 @@ def _check_physics(frame: pd.DataFrame, layer: str, report: dict[str, Any]) -> N
         checks.append(("muon iso >= 0", iso.isna() | (np.isfinite(iso) & (iso >= 0.0))))
     if layer == "gold" and "mass" in frame:
         checks.append(("mass above two muon masses", frame["mass"] > 2.0 * MUON_MASS_GEV))
+    if layer == "gold" and profile == "nanoaod_full" and {"mu1_pt", "mu2_pt"} <= set(frame.columns):
+        checks.append(("mu1_pt >= mu2_pt for nanoaod_full", frame["mu1_pt"] >= frame["mu2_pt"]))
     for message, valid in checks:
         count = int((~valid).sum())
         report["metrics"].setdefault("physics_violation_counts", {}).setdefault(message, 0)
@@ -253,7 +300,9 @@ def _add_certification_metrics(dataset_id: str, layer: str, report: dict[str, An
     report["metrics"].update(metrics)
     fraction = float(metrics.get("certified_fraction", 0.0))
     low, high = dataset_config(dataset_id).get("expected_certified_fraction", [0.0, 1.0])
-    _require(float(low) <= fraction <= float(high), "certified_fraction within expected band", report)
+    _require(
+        float(low) <= fraction <= float(high), "certified_fraction within expected band", report
+    )
 
 
 def _check_row_count_history(report: dict[str, Any]) -> None:
@@ -275,7 +324,11 @@ def _previous_success(dataset_id: str, layer: str) -> dict[str, Any] | None:
         return None
     history = json.loads(output.read_text(encoding="utf-8"))
     for entry in reversed(history):
-        if entry.get("dataset_id") == dataset_id and entry.get("layer") == layer and entry.get("passed"):
+        if (
+            entry.get("dataset_id") == dataset_id
+            and entry.get("layer") == layer
+            and entry.get("passed")
+        ):
             return entry
     return None
 

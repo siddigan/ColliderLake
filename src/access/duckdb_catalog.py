@@ -15,7 +15,7 @@ def connect(database: str | Path = ":memory:") -> duckdb.DuckDBPyConnection:
 
 
 def register_gold_views(connection: duckdb.DuckDBPyConnection) -> None:
-    dimuon_glob = (data_path("gold", "analysis=resonance") / "**" / "*.parquet").as_posix()
+    dimuon_glob = (data_path("gold") / "analysis=*" / "**" / "*.parquet").as_posix()
     connection.execute(
         """
         CREATE OR REPLACE VIEW gold_dimuon AS

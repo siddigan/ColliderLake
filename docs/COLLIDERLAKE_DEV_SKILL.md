@@ -33,7 +33,7 @@ plausible-looking wrong results that survive until a reviewer finds them.
   `src/physics/pdg.py`. If a docstring or README needs a mass value, reference
   PDG constants programmatically or mark it clearly as illustrative.
 - **Scope guard.** Nothing beyond the `gold.dimuon` contract (anomaly
-  detection, GNNs, DIAMOND layers) gets implemented before the RESONANCE
+  detection, GNNs, RECKONING layers) gets implemented before the RESONANCE
   preprint is done. If asked, build only the stable gold contract.
 
 ## Environment

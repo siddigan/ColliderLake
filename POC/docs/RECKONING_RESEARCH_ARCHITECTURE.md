@@ -1,8 +1,8 @@
-# DIAMOND Research Architecture
+# RECKONING Research Architecture
 
-DIAMOND is the downstream research architecture for ColliderLake. It extends the current bronze, silver, and gold lakehouse into a physics research platform that can support rigorous analysis, reproducible datasets, graph construction, anomaly search, and publication-grade outputs.
+RECKONING is the downstream research architecture for ColliderLake. It extends the current bronze, silver, and gold lakehouse into a physics research platform that can support rigorous analysis, reproducible datasets, graph construction, anomaly search, and publication-grade outputs.
 
-DIAMOND stands for:
+RECKONING stands for:
 
 ```text
 D - Detector and data-quality certification
@@ -20,7 +20,7 @@ The current implemented lakehouse ends at:
 ROOT -> converted Parquet -> bronze -> silver -> gold
 ```
 
-DIAMOND starts after gold:
+RECKONING starts after gold:
 
 ```text
 gold curated datasets

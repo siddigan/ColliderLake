@@ -27,7 +27,9 @@ def acquire_dataset(dataset_id: str) -> Path:
 
     add_stage_stats("acquire", files=len(files), rows_out=len(files))
     for path in files:
-        safe_log(logger, logging.INFO, "file found: %s (%s)", path.name, format_size(path.stat().st_size))
+        safe_log(
+            logger, logging.INFO, "file found: %s (%s)", path.name, format_size(path.stat().st_size)
+        )
 
     manifest = {
         "dataset_id": dataset_id,
@@ -57,6 +59,18 @@ def manifest_entries(dataset_id: str) -> list[tuple[Path, dict[str, Any]]]:
         path = acquire_dataset(dataset_id)
     data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     raw_dir = configured_data_path(data["local_path"])
+    changed = False
+    for item in data.get("files", []):
+        source = raw_dir / item["name"]
+        if not item.get("sha256"):
+            if not source.is_file():
+                raise FileNotFoundError(f"Manifest source file is missing: {source}")
+            item.update(_file_entry(source))
+            changed = True
+    if changed:
+        temporary = path.with_name(f".{path.name}.tmp")
+        temporary.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+        temporary.replace(path)
     return [(raw_dir / item["name"], item) for item in data["files"]]
 
 

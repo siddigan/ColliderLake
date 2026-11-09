@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import time
 import tracemalloc
 from pathlib import Path
@@ -56,6 +57,57 @@ def test_vectorized_pairing_matches_frozen_reference():
         rtol=0.0,
         atol=1e-9,
     )
+
+
+def test_gold_rows_remain_identical_to_cl213_golden_fixture():
+    from src.utils.config import fit_config_id, load_yaml, selection_for_dataset
+    from src.utils.paths import config_path
+
+    _selection_path, selection, sel_id = selection_for_dataset(
+        "run2012bc_doublemuparked", "resonance"
+    )
+    expected = json.loads(
+        Path("tests/fixtures/gold_cl213_synthetic.json").read_text(encoding="utf-8")
+    )
+    assert sel_id == expected["selection_id"] == "4d93aea9"
+    assert (
+        fit_config_id(load_yaml(config_path("fits", "resonance_ladder.yaml")))
+        == expected["fit_config_id"]
+        == "4c5247e8"
+    )
+
+    events = pd.DataFrame(
+        [
+            {
+                "dataset_id": selection["dataset"],
+                "run": 1,
+                "luminosityBlock": 10,
+                "event": event,
+                "identity_mode": "synthetic",
+            }
+            for event in (100, 101)
+        ]
+    )
+    muons = pd.DataFrame(
+        _muon_rows(
+            [(100, [10.0, 8.0, 4.0], [1, -1, -1]), (101, [10.0, 9.0, 8.0, 7.0], [1, 1, -1, -1])]
+        )
+    )
+    muons["dataset_id"] = selection["dataset"]
+    muons["luminosityBlock"] = 10
+    muons["eta"] = muons["muon_idx"] * 0.1
+    muons["phi"] = muons["muon_idx"] * 0.7
+    actual = pd.DataFrame(_build_pairs_for_part(events, muons, selection, sel_id))
+    keys = EVENT_KEYS + ["pair_idx"]
+    actual = actual.sort_values(keys).reset_index(drop=True)
+    expected_frame = pd.DataFrame(expected["rows"]).sort_values(keys).reset_index(drop=True)
+    assert set(actual.columns) == set(expected_frame.columns)
+    non_numeric = actual.select_dtypes(exclude=["number"]).columns
+    pd.testing.assert_frame_equal(
+        actual[non_numeric], expected_frame[non_numeric], check_dtype=False
+    )
+    numeric = actual.select_dtypes(include=["number"]).columns
+    np.testing.assert_allclose(actual[numeric], expected_frame[numeric], rtol=0.0, atol=1e-12)
 
 
 def test_vectorized_gold_20k_events_under_five_seconds_and_records_peak_rss(

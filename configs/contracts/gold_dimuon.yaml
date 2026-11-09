@@ -1,3 +1,11 @@
+# mu1/mu2 preserve source muon_idx order. NanoAOD stores the collection in pT
+# order; DQ checks mu1_pt >= mu2_pt for nanoaod_full outputs.
+# With opposite_charge: true, pair_idx=0 is the leading opposite-sign pair
+# under the pair-pT-sum ranking. The template-style “two hardest, then classify”
+# approach requires opposite_charge: false and a downstream charge split; it is
+# a RECKONING selection design, not the RESONANCE default.
+# A RECKONING features layer may instead join silver muons on the complete event
+# key (dataset_id, run, luminosityBlock, event) to retrieve additional features.
 profiles:
   reduced:
     required_columns: []

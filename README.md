@@ -56,7 +56,7 @@ physics serves as ground truth. Deliverables: a preprint
 pipeline that reproduces all figures from a clean clone with a single
 command.
 
-A follow-up study (DIAMOND) is planned: model-agnostic anomaly detection on
+A follow-up study (RECKONING) is planned: model-agnostic anomaly detection on
 the same gold tables, with signal-region blinding enforced at the storage
 layer.
 

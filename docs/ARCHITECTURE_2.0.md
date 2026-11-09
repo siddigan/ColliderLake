@@ -3,7 +3,7 @@
 **Status:** Approved design, implementation in progress
 **Supersedes:** ColliderLake 1.0 (single-dataset exploration pipeline)
 **First consumer:** Project RESONANCE (dimuon resonance ladder, arXiv `physics.data-an`)
-**Second consumer (planned):** DIAMOND anomaly-detection layer (paper #2)
+**Second consumer (planned):** RECKONING anomaly-detection layer (paper #2)
 
 ---
 
@@ -35,7 +35,7 @@ and one-command reproducibility.
 - Distributed/cloud execution (documented as a scaling path, not implemented).
 - Simulation (MC) processing and full systematic uncertainties (NanoAOD open data
   limits acknowledged in the paper).
-- Graph/GNN event representations (deferred to DIAMOND phase 2, post-paper-#2).
+- Graph/GNN event representations (deferred to RECKONING phase 2, post-paper-#2).
 - Custom dissemination infrastructure (outsourced to Zenodo, GitHub Pages, REANA).
 
 ### Constraints
@@ -69,7 +69,7 @@ and one-command reproducibility.
 └─────────────────────────────────────────────────────────────────────────┘
                                     ↓
         ┌───────────────────┐              ┌────────────────────────┐
-        │ DuckDB access     │              │ DIAMOND interface      │
+        │ DuckDB access     │              │ RECKONING interface      │
         │ views over gold   │              │ (paper #2 contract)    │
         └───────────────────┘              └────────────────────────┘
 ```
@@ -118,7 +118,7 @@ The silver/gold trigger split is a deliberate 1.0 bug-fix promoted to a design r
 lets the Z analysis (IsoMu24) and the ladder analysis (low-threshold dimuon paths)
 share silver.
 
-### 3.3 Gold dimuon schema (the RESONANCE + DIAMOND contract)
+### 3.3 Gold dimuon schema (the RESONANCE + RECKONING contract)
 
 ```
 gold.dimuon
@@ -135,9 +135,11 @@ gold.dimuon
 ```
 
 `selection_id` = short hash of the resolved selection YAML. Every gold row is
-traceable to the exact configuration that produced it. DIAMOND's anomaly work
-consumes this table as-is (kinematic + isolation features are already the CATHODE
-feature set), so paper #2 requires zero ingestion changes.
+traceable to the exact configuration that produced it. The table provides the
+dimuon kinematics and any contract-required per-muon values. A downstream
+RECKONING features layer may consume gold directly or join silver muons by the
+complete event key to attach richer object features. Feature definitions and
+validation belong to that layer; this table is not itself a CATHODE feature set.
 
 ---
 
@@ -347,14 +349,14 @@ ColliderLake/
    submission (Phase 3, not Phase 4).
 4. **PySpark overhead at 7.5 GB** → acceptable; DuckDB fallback exists for every
    silver/gold transform if Spark friction grows.
-5. **Scope creep toward DIAMOND** → hard rule: nothing beyond the gold contract
+5. **Scope creep toward RECKONING** → hard rule: nothing beyond the gold contract
    ships before the RESONANCE preprint is on arXiv.
 
 ## 10. What we'd revisit as the system grows
 
 - **2.x:** RNTuple read path (ROOT's TTree successor); optional coffea/dask-awkward
   processing engine beside PySpark; Delta/Iceberg if multi-writer scenarios appear.
-- **3.0 (DIAMOND):** anomaly-candidate store as a new gold-adjacent layer
+- **3.0 (RECKONING):** anomaly-candidate store as a new gold-adjacent layer
   (CATHODE/CWoLa weakly-supervised search on dimuon sidebands, per the
   PRL 135, 021902 template); sample-weight and model-artifact management.
 - **Scale-out:** the layer contracts are S3-path-compatible by construction;

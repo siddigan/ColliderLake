@@ -31,9 +31,10 @@ LOGGER = get_logger("gold")
 _LOGGED_GLOBAL_MUON_NOOP = False
 
 
-def build_gold(dataset_id: str, engine: str | None = None) -> Path:
+def build_gold(dataset_id: str, engine: str | None = None, *, analysis: str | None = None) -> Path:
     logger = get_logger("gold")
-    _, selection, sel_id = selection_for_dataset(dataset_id)
+    _, selection, sel_id = selection_for_dataset(dataset_id, analysis)
+    analysis_name = str(selection.get("analysis", "resonance"))
     engine = gold_engine(engine)
     profile, required_columns = _gold_profile(dataset_id)
     safe_log(
@@ -43,7 +44,7 @@ def build_gold(dataset_id: str, engine: str | None = None) -> Path:
         sel_id,
         selection.get("max_muons_per_event", 128),
     )
-    output_dir = data_dir("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
+    output_dir = data_dir("gold", f"analysis={analysis_name}", f"dataset={dataset_id}", "dimuon")
     silver_events_dir = data_path("silver", f"dataset={dataset_id}", "events")
     silver_muons_dir = data_path("silver", f"dataset={dataset_id}", "muons")
     written = 0
@@ -115,6 +116,7 @@ def build_gold(dataset_id: str, engine: str | None = None) -> Path:
                     sel_id,
                     profile,
                     required_columns,
+                    analysis_name,
                 ): path
                 for path in event_files
             }
@@ -286,6 +288,7 @@ def _process_gold_part(
     sel_id: str,
     profile: str = "reduced",
     required_columns: list[str] | None = None,
+    analysis: str = "resonance",
 ) -> dict[str, Any]:
     part_started = time.monotonic()
     event_file = Path(event_path)
@@ -317,7 +320,7 @@ def _process_gold_part(
     output = pd.DataFrame(rows)
     if not output.empty:
         output["pair_idx"] = output["pair_idx"].astype("int32")
-    output_dir = data_dir("gold", "analysis=resonance", f"dataset={dataset_id}", "dimuon")
+    output_dir = data_dir("gold", f"analysis={analysis}", f"dataset={dataset_id}", "dimuon")
     output.to_parquet(
         ensure_parent(output_dir / event_file.name),
         index=False,

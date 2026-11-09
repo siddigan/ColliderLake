@@ -1,6 +1,6 @@
 # Research Layer Table Contracts
 
-This document defines downstream table contracts for the DIAMOND architecture. These are design contracts for future implementation.
+This document defines downstream table contracts for the RECKONING architecture. These are design contracts for future implementation.
 
 ## certified_event
 

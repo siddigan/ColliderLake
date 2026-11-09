@@ -30,6 +30,8 @@ def build_silver(dataset_id: str) -> Path:
         "muons_before": 0,
         "muons_after_eta": 0,
     }
+    processed_lumis: set[tuple[int, int]] = set()
+    certified_lumis: set[tuple[int, int]] = set()
     event_files = sorted(data_path("bronze", f"dataset={dataset_id}", "events").glob("*.parquet"))
     workers = _worker_count(len(event_files))
     if workers > 1:
@@ -51,6 +53,8 @@ def build_silver(dataset_id: str) -> Path:
         for result in sorted(completed, key=lambda item: item["part"]):
             for key in ("events_before", "events_after", "muons_before", "muons_after_eta"):
                 metrics[key] += result[key]
+            processed_lumis.update(tuple(row) for row in result.get("processed_lumis", []))
+            certified_lumis.update(tuple(row) for row in result.get("certified_lumis", []))
             safe_log(logger, logging.INFO, result["log"])
             add_stage_stats(
                 "silver",
@@ -63,8 +67,12 @@ def build_silver(dataset_id: str) -> Path:
         # Keep the original sequential path intact for reproducible debugging.
         for event_file in event_files:
             events = pd.read_parquet(event_file)
+            if config.get("event_identity", "native") == "native":
+                processed_lumis.update(_lumi_keys(events))
             certified = _apply_certification(events, config)
             kept_events = certified[certified["certified"].astype(bool)].reset_index(drop=True)
+            if config.get("event_identity", "native") == "native":
+                certified_lumis.update(_lumi_keys(kept_events))
             metrics["events_before"] += len(events)
             metrics["events_after"] += len(kept_events)
             out_events = data_path("silver", f"dataset={dataset_id}", "events") / event_file.name
@@ -124,6 +132,7 @@ def build_silver(dataset_id: str) -> Path:
     ensure_parent(metrics_path).write_text(
         json.dumps(metrics, indent=2, sort_keys=True), encoding="utf-8"
     )
+    _write_lumi_manifest(dataset_id, config, processed_lumis, certified_lumis)
     return data_dir("silver", f"dataset={dataset_id}")
 
 
@@ -142,8 +151,14 @@ def _process_silver_part(
 ) -> dict[str, Any]:
     event_file = Path(event_path)
     events = pd.read_parquet(event_file)
+    processed_lumis = (
+        _lumi_keys(events) if config.get("event_identity", "native") == "native" else set()
+    )
     kept_events = _apply_certification(events, config)
     kept_events = kept_events[kept_events["certified"].astype(bool)].reset_index(drop=True)
+    certified_lumis = (
+        _lumi_keys(kept_events) if config.get("event_identity", "native") == "native" else set()
+    )
     out_events = data_path("silver", f"dataset={dataset_id}", "events") / event_file.name
     kept_events.to_parquet(
         ensure_parent(out_events), index=False, **parquet_write_options("silver")
@@ -169,8 +184,51 @@ def _process_silver_part(
         "events_after": len(kept_events),
         "muons_before": muons_before,
         "muons_after_eta": muons_after_eta,
+        "processed_lumis": [list(row) for row in sorted(processed_lumis)],
+        "certified_lumis": [list(row) for row in sorted(certified_lumis)],
         "log": log,
     }
+
+
+def _lumi_keys(events: pd.DataFrame) -> set[tuple[int, int]]:
+    if events.empty or not {"run", "luminosityBlock"} <= set(events.columns):
+        return set()
+    return {
+        (int(run), int(lumi))
+        for run, lumi in events[["run", "luminosityBlock"]]
+        .drop_duplicates()
+        .itertuples(index=False, name=None)
+    }
+
+
+def _write_lumi_manifest(
+    dataset_id: str,
+    config: dict[str, Any],
+    processed: set[tuple[int, int]],
+    certified: set[tuple[int, int]],
+) -> None:
+    if config.get("event_identity", "native") != "native":
+        payload: dict[str, Any] = {
+            "dataset_id": dataset_id,
+            "identity_mode": "synthetic",
+            "status": "not applicable: synthetic identity",
+        }
+    else:
+        certified_intersection = processed.intersection(certified)
+        payload = {
+            "dataset_id": dataset_id,
+            "identity_mode": "native",
+            "processed_lumis": [list(key) for key in sorted(processed)],
+            "processed_lumi_count": len(processed),
+            "certified_lumis": [list(key) for key in sorted(certified)],
+            "certified_lumi_count": len(certified),
+            "certified_intersection_lumis": [list(key) for key in sorted(certified_intersection)],
+            "certified_intersection_count": len(certified_intersection),
+        }
+    path = data_dir("silver", f"dataset={dataset_id}") / "lumi_processed.json"
+    temp = path.with_name(f".{path.name}.tmp")
+    temp.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    temp.replace(path)
 
 
 def _apply_certification(frame: pd.DataFrame, config: dict[str, Any]) -> pd.DataFrame:

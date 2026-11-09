@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import math
 import time
@@ -10,36 +11,53 @@ from typing import Any
 import pandas as pd
 
 from src.acquire.local import manifest_entries
-from src.utils.config import dataset_config, parquet_write_options
+from src.utils.config import bronze_contract, dataset_config, load_yaml, parquet_write_options
 from src.utils.paths import data_dir, data_path, ensure_parent
 from src.utils.runlog import add_stage_stats, format_duration, get_logger, safe_log
 
 EVENT_KEYS = ["dataset_id", "run", "luminosityBlock", "event"]
 NATIVE_KEYS = ["run", "luminosityBlock", "event"]
-MUON_BRANCHES = {
-    "Muon_pt": "pt",
-    "Muon_eta": "eta",
-    "Muon_phi": "phi",
-    "Muon_mass": "mass",
-    "Muon_charge": "charge",
-    "Muon_tightId": "tight_id",
-    "Muon_mediumId": "medium_id",
-    "Muon_pfRelIso04_all": "iso",
-}
 
 
 def build_bronze(dataset_id: str, max_batches: int | None = None) -> Path:
     config = dataset_config(dataset_id)
+    contract = bronze_contract(config)
+    branch_audit: dict[str, Any] = {
+        "profile": contract["name"],
+        "sources": [],
+    }
     written = 0
     for source, manifest in manifest_entries(dataset_id):
         if source.suffix.lower() == ".root":
-            written += _root_to_parquet(source, manifest, config, max_batches)
+            written += _root_to_parquet(
+                source, manifest, config, max_batches, contract=contract, audit=branch_audit
+            )
         elif source.suffix.lower() == ".parquet":
-            written += _tabular_to_parquet(pd.read_parquet(source), source, manifest, config)
+            written += _tabular_to_parquet(
+                pd.read_parquet(source), source, manifest, config, contract["muon_branch_columns"]
+            )
         elif source.suffix.lower() == ".csv":
-            written += _tabular_to_parquet(pd.read_csv(source), source, manifest, config)
+            written += _tabular_to_parquet(
+                pd.read_csv(source), source, manifest, config, contract["muon_branch_columns"]
+            )
     if written == 0:
         raise RuntimeError(f"No bronze files written for {dataset_id}")
+    missing_optional = sorted(
+        {
+            branch
+            for item in branch_audit["sources"]
+            for branch in item["missing_configured_branches"]
+        }
+    )
+    missing_required = sorted(
+        {branch for item in branch_audit["sources"] for branch in item["missing_required_branches"]}
+    )
+    branch_audit["missing_configured_branches"] = missing_optional
+    branch_audit["missing_required_branches"] = missing_required
+    output = data_dir("bronze", f"dataset={dataset_id}") / "branch_audit.json"
+    ensure_parent(output).write_text(
+        json.dumps(branch_audit, indent=2, sort_keys=True), encoding="utf-8"
+    )
     return data_dir("bronze", f"dataset={dataset_id}")
 
 
@@ -48,13 +66,21 @@ def _root_to_parquet(
     manifest: dict[str, Any],
     config: dict[str, Any],
     max_batches: int | None,
+    *,
+    contract: dict[str, Any] | None = None,
+    audit: dict[str, Any] | None = None,
 ) -> int:
     try:
         import uproot
     except ImportError as exc:
         raise RuntimeError("ROOT conversion requires uproot") from exc
 
-    requested = list(config.get("branches", []))
+    contract = contract or bronze_contract(config)
+    muon_branch_columns = contract["muon_branch_columns"]
+    configured = list(config.get("branches", []))
+    candidates = list(contract.get("candidate_branches", []))
+    required = set(contract.get("required_branches", []))
+    requested = list(dict.fromkeys(configured + sorted(required) + candidates))
     identity_mode = config.get("event_identity", "native")
     written = 0
     event_offset = 0
@@ -65,6 +91,35 @@ def _root_to_parquet(
         tree = root_file["Events"]
         total_entries = int(tree.num_entries)
         available = set(tree.keys())
+        missing = [branch for branch in requested if branch not in available]
+        missing_required = sorted(required.intersection(missing))
+        missing_optional = sorted(set(missing) - required)
+        if missing_optional:
+            safe_log(
+                logger,
+                logging.WARNING,
+                "configured ROOT branches absent; skipping optional branches | source=%s | branches=%s",
+                source.name,
+                ", ".join(missing_optional),
+            )
+        if missing_required:
+            safe_log(
+                logger,
+                logging.ERROR,
+                "contract-required ROOT branches absent | source=%s | branches=%s",
+                source.name,
+                ", ".join(missing_required),
+            )
+        if audit is not None:
+            audit["sources"].append(
+                {
+                    "source": source.name,
+                    "configured_branches": requested,
+                    "present_branches": [branch for branch in requested if branch in available],
+                    "missing_configured_branches": missing_optional,
+                    "missing_required_branches": missing_required,
+                }
+            )
         branches = [branch for branch in requested if branch in available]
         if identity_mode == "native":
             missing_keys = [branch for branch in NATIVE_KEYS if branch not in branches]
@@ -88,8 +143,10 @@ def _root_to_parquet(
                 event_offset=event_offset,
             )
             part = f"{source.stem}_part_{batch_index:04d}.parquet"
-            event_rows = _write_events(base, arrays, config["dataset_id"], part)
-            muon_rows = _write_muons(base, arrays, config["dataset_id"], part)
+            event_rows = _write_events(
+                base, arrays, config["dataset_id"], part, set(muon_branch_columns)
+            )
+            muon_rows = _write_muons(base, arrays, config["dataset_id"], part, muon_branch_columns)
             event_offset += batch_size
             written += 1
             add_stage_stats(
@@ -124,6 +181,7 @@ def _tabular_to_parquet(
     source: Path,
     manifest: dict[str, Any],
     config: dict[str, Any],
+    muon_branch_columns: dict[str, str] | None = None,
 ) -> int:
     logger = get_logger("bronze")
     started = time.monotonic()
@@ -139,8 +197,9 @@ def _tabular_to_parquet(
         event_offset=0,
     )
     part = f"{source.stem}_part_0000.parquet"
-    event_rows = _write_events(base, arrays, config["dataset_id"], part)
-    muon_rows = _write_muons(base, arrays, config["dataset_id"], part)
+    branch_columns = muon_branch_columns or _all_muon_branch_columns()
+    event_rows = _write_events(base, arrays, config["dataset_id"], part, set(branch_columns))
+    muon_rows = _write_muons(base, arrays, config["dataset_id"], part, branch_columns)
     add_stage_stats(
         "bronze",
         batches=1,
@@ -199,10 +258,12 @@ def _write_events(
     arrays: dict[str, Any],
     dataset_id: str,
     part: str,
+    muon_branches: set[str] | None = None,
 ) -> int:
     events = base.copy()
+    muon_branches = muon_branches or _all_muon_branch_columns().keys()
     for name, values in arrays.items():
-        if name in MUON_BRANCHES or name in NATIVE_KEYS or name == "nMuon":
+        if name in muon_branches or name in NATIVE_KEYS or name == "nMuon":
             continue
         if _is_scalar_array(values):
             events[name] = values
@@ -216,10 +277,12 @@ def _write_muons(
     arrays: dict[str, Any],
     dataset_id: str,
     part: str,
+    muon_branch_columns: dict[str, str] | None = None,
 ) -> int:
+    muon_branch_columns = muon_branch_columns or _all_muon_branch_columns()
     rows: list[dict[str, Any]] = []
     batch_size = len(base)
-    jagged = {branch: _jagged(arrays.get(branch), batch_size) for branch in MUON_BRANCHES}
+    jagged = {branch: _jagged(arrays.get(branch), batch_size) for branch in muon_branch_columns}
     pts = jagged["Muon_pt"]
     base_columns = {
         column: base[column].to_numpy(copy=False)
@@ -243,7 +306,7 @@ def _write_muons(
                     "_ingest_ts": base_columns["_ingest_ts"][event_idx],
                 }
             )
-            for branch, column in MUON_BRANCHES.items():
+            for branch, column in muon_branch_columns.items():
                 if branch not in arrays:
                     continue
                 values = jagged[branch]
@@ -255,6 +318,11 @@ def _write_muons(
     path = data_path("bronze", f"dataset={dataset_id}", "muons") / part
     muons.to_parquet(ensure_parent(path), index=False, **parquet_write_options("bronze"))
     return len(muons)
+
+
+def _all_muon_branch_columns() -> dict[str, str]:
+    contract = load_yaml("configs/contracts/bronze.yaml")
+    return dict(contract.get("muon_branch_columns", {}))
 
 
 def _batch_size(arrays: dict[str, Any]) -> int:

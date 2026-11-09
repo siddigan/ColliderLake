@@ -6,6 +6,7 @@ datasets:
       - "10.7483/OPENDATA.CMS.M5AD.Y3V3"
     energy_tev: 8
     format: nanoaod_reduced_muons
+    bronze_profile: reduced
     local_path: raw/run2012bc_doublemuparked
     certification: prefiltered
     event_identity: synthetic
@@ -30,6 +31,7 @@ datasets:
     doi: "10.7483/OPENDATA.CMS.4BUS.64MV"
     energy_tev: 13
     format: nanoaodv9_ul
+    bronze_profile: nanoaod_full
     gold_profile: nanoaod_full
     local_path: raw/run2016h_singlemuon
     event_identity: native

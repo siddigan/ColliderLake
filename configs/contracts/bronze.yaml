@@ -1,0 +1,35 @@
+profiles:
+  reduced:
+    required_branches:
+      - Muon_pt
+      - Muon_eta
+      - Muon_phi
+      - Muon_mass
+      - Muon_charge
+    candidate_branches:
+      - Muon_tightId
+      - Muon_mediumId
+      - Muon_pfRelIso04_all
+  nanoaod_full:
+    required_branches:
+      - run
+      - luminosityBlock
+      - event
+      - Muon_pt
+      - Muon_eta
+      - Muon_phi
+      - Muon_mass
+      - Muon_charge
+      - Muon_tightId
+      - Muon_pfRelIso04_all
+    candidate_branches:
+      - Muon_mediumId
+muon_branch_columns:
+  Muon_pt: pt
+  Muon_eta: eta
+  Muon_phi: phi
+  Muon_mass: mass
+  Muon_charge: charge
+  Muon_tightId: tight_id
+  Muon_mediumId: medium_id
+  Muon_pfRelIso04_all: iso

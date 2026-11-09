@@ -11,7 +11,7 @@ class ResearchLayer:
     planned_tables: tuple[str, ...]
 
 
-DIAMOND_LAYERS: tuple[ResearchLayer, ...] = (
+RECKONING_LAYERS: tuple[ResearchLayer, ...] = (
     ResearchLayer(
         order=1,
         name="certified_physics",
@@ -95,6 +95,6 @@ def research_layer_rows() -> list[dict[str, object]]:
             "purpose": layer.purpose,
             "planned_tables": ", ".join(layer.planned_tables),
         }
-        for layer in DIAMOND_LAYERS
+        for layer in RECKONING_LAYERS
     ]
 

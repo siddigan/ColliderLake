@@ -1,3 +1,4 @@
+import json
 import math
 import shutil
 import time
@@ -7,9 +8,11 @@ import awkward as ak
 import numpy as np
 import pandas as pd
 import pytest
+import yaml
 
 from src.bronze.convert import build_bronze
 from src.cli import run_pipeline
+from src.dq.checks import run_dq
 from src.physics.pdg import JPSI_MASS_GEV, MUON_MASS_GEV
 from src.utils.paths import data_dir, data_path, ensure_parent
 from tests.fit_assertions import assert_valid_fit
@@ -28,6 +31,9 @@ def test_synthetic_identity_bronze_for_2012_six_branch_root(tmp_path, monkeypatc
     assert list(events["event"]) == [0, 1, 2]
     assert set(events["identity_mode"]) == {"synthetic"}
     assert {"dataset_id", "run", "luminosityBlock", "event", "_source_sha256"} <= set(muons.columns)
+    assert "iso" not in muons.columns
+    audit = json.loads((bronze_root / "branch_audit.json").read_text(encoding="utf-8"))
+    assert "Muon_pfRelIso04_all" in audit["missing_configured_branches"]
     assert len(muons) == 6
 
 
@@ -43,6 +49,22 @@ def test_bronze_conversion_speed_for_20k_event_root(tmp_path, monkeypatch):
     elapsed = time.monotonic() - start
 
     assert elapsed < 2.0
+
+
+def test_bronze_required_contract_branch_absence_fails_dq(tmp_path, monkeypatch):
+    _prepare_project_root(tmp_path, monkeypatch)
+    contract = tmp_path / "configs" / "contracts" / "bronze.yaml"
+    data = yaml.safe_load(contract.read_text(encoding="utf-8"))
+    data["profiles"]["reduced"]["required_branches"].append("Muon_absent")
+    contract.write_text(yaml.safe_dump(data), encoding="utf-8")
+    _write_synthetic_2012_root(
+        ensure_parent(data_path("raw", "run2012bc_doublemuparked", "sample.root"))
+    )
+    bronze = build_bronze("run2012bc_doublemuparked", max_batches=1)
+    with pytest.raises(
+        RuntimeError, match="contract violation: required source branch Muon_absent"
+    ):
+        run_dq("run2012bc_doublemuparked", "bronze", bronze)
 
 
 @pytest.mark.parametrize("engine", ["vectorized", "duckdb"])

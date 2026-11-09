@@ -1,2 +1,2 @@
-"""Research layer registry for the DIAMOND architecture."""
+"""Research layer registry for the RECKONING architecture."""
 

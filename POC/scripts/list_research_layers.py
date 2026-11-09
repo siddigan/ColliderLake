@@ -4,11 +4,11 @@ from _bootstrap import add_workspace_to_path
 
 add_workspace_to_path()
 
-from src.research.registry import DIAMOND_LAYERS
+from src.research.registry import RECKONING_LAYERS
 
 
 def main() -> None:
-    for layer in DIAMOND_LAYERS:
+    for layer in RECKONING_LAYERS:
         print(f"{layer.order}. {layer.name}")
         print(f"   {layer.purpose}")
         print(f"   tables: {', '.join(layer.planned_tables)}")

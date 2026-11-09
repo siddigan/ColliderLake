@@ -57,6 +57,9 @@ def main() -> int:
     run.add_argument("--expect-fit-config")
     run.add_argument("--expect-selection")
     run.add_argument("--engine", choices=["vectorized", "duckdb"])
+    run.add_argument(
+        "--analysis", help="Selection analysis name when a dataset has multiple selections"
+    )
     run.add_argument("--strict", action="store_true")
     clam = sub.add_parser("clam", help="ColliderLake Acquisition Manager")
     clam.add_argument("--verbose", action="store_true")
@@ -87,6 +90,7 @@ def main() -> int:
             expect_selection=args.expect_selection,
             strict=args.strict,
             engine=args.engine,
+            analysis=args.analysis,
         )
     elif args.command == "clam":
         configure_logging(
@@ -107,13 +111,14 @@ def run_pipeline(
     expect_selection: str | None = None,
     strict: bool = False,
     engine: str | None = None,
+    analysis: str | None = None,
 ) -> int:
     configure_logging(quiet=quiet, verbose=verbose)
     from src.utils.paths import data_root
 
     record = hodo_run(
         f"colliderlake:{dataset_id}:{stage}",
-        context_providers=[context_provider(dataset_id, engine)],
+        context_providers=[context_provider(dataset_id, engine, analysis)],
         env_prefixes=("HODO", "COLLIDERLAKE_"),
         root=os.environ.get("HODOSCOPE_ROOT", str(data_root() / "results")),
     )
@@ -148,7 +153,9 @@ def run_pipeline(
                 print(f"Hodoscope preflight ABORTED: {reason}", file=sys.stderr)
                 guard_aborted = True
             else:
-                _execute_pipeline(dataset_id, stage, max_batches, verbose, quiet, record, engine)
+                _execute_pipeline(
+                    dataset_id, stage, max_batches, verbose, quiet, record, engine, analysis
+                )
     except BaseException as exc:  # noqa: BLE001 - persist summary before propagating interrupts unchanged
         failure, traceback = exc, exc.__traceback__
     _write_compatibility_outputs(record, archive=(stage == "all"))
@@ -180,6 +187,7 @@ def _execute_pipeline(
     quiet: bool,
     recorder,
     engine: str | None = None,
+    analysis: str | None = None,
 ) -> None:
     configure_logging(quiet=quiet, verbose=verbose)
     stages = ["acquire", "bronze", "silver", "gold", "fit"] if stage == "all" else [stage]
@@ -202,7 +210,9 @@ def _execute_pipeline(
             stage_started = time.monotonic()
             rss_monitor = PeakProcessTreeRSS().start()
             try:
-                output = _run_stage(item, dataset_id, max_batches, recorder.run_id, engine)
+                output = _run_stage(
+                    item, dataset_id, max_batches, recorder.run_id, engine, analysis
+                )
                 elapsed = time.monotonic() - stage_started
                 hstage.metric("peak_rss_bytes", rss_monitor.stop())
                 stats = stage_stats(item)
@@ -236,7 +246,7 @@ def _execute_pipeline(
                 hstage.__exit__(type(exc), exc, exc.__traceback__)
                 raise
     finally:
-        summary = _run_summary(dataset_id, results, time.monotonic() - run_started)
+        summary = _run_summary(dataset_id, results, time.monotonic() - run_started, analysis)
         recorder.data["summary"] = summary
 
 
@@ -345,22 +355,25 @@ def _run_stage(
     max_batches: int | None,
     run_id: str | None = None,
     engine: str | None = None,
+    analysis: str | None = None,
 ) -> Path | None:
     if item == "acquire":
         return acquire_dataset(dataset_id)
     if item == "bronze":
         path = build_bronze(dataset_id, max_batches=max_batches)
-        run_dq(dataset_id, "bronze", path, run_id=run_id)
+        run_dq(dataset_id, "bronze", path, run_id=run_id, analysis=analysis)
         return path
     if item == "silver":
         path = build_silver(dataset_id)
-        run_dq(dataset_id, "silver", path, run_id=run_id)
+        run_dq(dataset_id, "silver", path, run_id=run_id, analysis=analysis)
         return path
     if item == "gold":
-        path = build_gold(dataset_id, engine=engine)
-        run_dq(dataset_id, "gold", path, run_id=run_id)
+        path = build_gold(dataset_id, engine=engine, analysis=analysis)
+        run_dq(dataset_id, "gold", path, run_id=run_id, analysis=analysis)
         return path
     if item == "fit":
+        if analysis is not None and analysis != "resonance":
+            raise ValueError("fit stage currently supports only analysis='resonance'")
         return fit_resonance(dataset_id)
     raise ValueError(f"Unknown stage {item!r}")
 
@@ -378,7 +391,9 @@ def _input_description(dataset_id: str) -> str:
     return f"{filename} ({format_size(size)})"
 
 
-def _run_summary(dataset_id: str, results: dict[str, StageResult], total: float) -> str:
+def _run_summary(
+    dataset_id: str, results: dict[str, StageResult], total: float, analysis: str | None = None
+) -> str:
     workers = os.environ.get("COLLIDERLAKE_WORKERS", "auto")
     lines = [
         "ColliderLake run summary",
@@ -401,7 +416,8 @@ def _run_summary(dataset_id: str, results: dict[str, StageResult], total: float)
             f"workers: {workers}",
             "stage_speedup: measured by scripts/bench_compare.py against a prior run summary",
             "pipeline_speedup: measured by scripts/bench_compare.py against a prior run summary",
-            f"selection_id: {_selection_id(dataset_id)}",
+            f"analysis: {analysis or _resolved_analysis(dataset_id)}",
+            f"selection_id: {_selection_id(dataset_id, analysis)}",
             f"fit_config_id: {_fit_config_id()}",
             f"results: {data_path('results')}",
             f"dq_report: {data_path('results') / 'dq_report.json'}",
@@ -417,11 +433,17 @@ def _fit_config_id() -> str:
         return "unknown"
 
 
-def _selection_id(dataset_id: str) -> str:
+def _resolved_analysis(dataset_id: str, analysis: str | None = None) -> str:
+    from src.utils.config import selection_for_dataset
+
+    return str(selection_for_dataset(dataset_id, analysis)[1]["analysis"])
+
+
+def _selection_id(dataset_id: str, analysis: str | None = None) -> str:
     try:
         from src.utils.config import selection_for_dataset
 
-        return selection_for_dataset(dataset_id)[2]
+        return selection_for_dataset(dataset_id, analysis)[2]
     except Exception:  # noqa: BLE001
         return "unknown"
 

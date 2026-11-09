@@ -4,14 +4,28 @@ import shutil
 import pandas as pd
 import pytest
 
-from src.dq.checks import run_dq
+from src.dq.checks import _check_physics, run_dq
 from src.silver.build import build_silver
 from src.utils.paths import data_dir, data_path, ensure_parent
 
 
+def test_nanoaod_gold_dq_checks_muon_index_pt_order():
+    report = {"metrics": {}, "failures": []}
+    _check_physics(
+        pd.DataFrame({"mu1_pt": [10.0], "mu2_pt": [12.0]}),
+        "gold",
+        report,
+        "nanoaod_full",
+    )
+    assert report["metrics"]["physics_violation_counts"]["mu1_pt >= mu2_pt for nanoaod_full"] == 1
+    assert report["failures"] == ["mu1_pt >= mu2_pt for nanoaod_full"]
+
+
 def test_dq_passes_good_muons(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    path = ensure_parent(data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet"))
+    path = ensure_parent(
+        data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet")
+    )
     _write_parquet(
         path,
         {
@@ -31,7 +45,9 @@ def test_dq_passes_good_muons(tmp_path, monkeypatch):
 
 def test_dq_fails_bad_muon_pt(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    path = ensure_parent(data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet"))
+    path = ensure_parent(
+        data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet")
+    )
     _write_parquet(
         path,
         {
@@ -50,7 +66,9 @@ def test_dq_fails_bad_muon_pt(tmp_path, monkeypatch):
 
 def test_dq_fails_certification_fraction_band(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    path = ensure_parent(data_path("silver", "dataset=run2012bc_doublemuparked", "events", "part.parquet"))
+    path = ensure_parent(
+        data_path("silver", "dataset=run2012bc_doublemuparked", "events", "part.parquet")
+    )
     _write_parquet(
         path,
         {
@@ -71,7 +89,9 @@ def test_dq_fails_certification_fraction_band(tmp_path, monkeypatch):
 
 def test_dq_fails_row_count_history_delta(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    path = ensure_parent(data_path("bronze", "dataset=run2012bc_doublemuparked", "events", "part.parquet"))
+    path = ensure_parent(
+        data_path("bronze", "dataset=run2012bc_doublemuparked", "events", "part.parquet")
+    )
     _write_parquet(
         path,
         {
@@ -97,8 +117,12 @@ def test_dq_fails_row_count_history_delta(tmp_path, monkeypatch):
 
 def test_eta_is_structural_in_bronze_and_cleaned_per_muon_in_silver(tmp_path, monkeypatch):
     _prepare_root(tmp_path, monkeypatch)
-    events = ensure_parent(data_path("bronze", "dataset=run2012bc_doublemuparked", "events", "part.parquet"))
-    muons = ensure_parent(data_path("bronze", "dataset=run2012bc_doublemuparked", "muons", "part.parquet"))
+    events = ensure_parent(
+        data_path("bronze", "dataset=run2012bc_doublemuparked", "events", "part.parquet")
+    )
+    muons = ensure_parent(
+        data_path("bronze", "dataset=run2012bc_doublemuparked", "muons", "part.parquet")
+    )
     _write_parquet(
         events,
         {
@@ -124,10 +148,20 @@ def test_eta_is_structural_in_bronze_and_cleaned_per_muon_in_silver(tmp_path, mo
         },
     )
 
-    assert run_dq("run2012bc_doublemuparked", "bronze", data_path("bronze", "dataset=run2012bc_doublemuparked"))["passed"]
+    assert run_dq(
+        "run2012bc_doublemuparked",
+        "bronze",
+        data_path("bronze", "dataset=run2012bc_doublemuparked"),
+    )["passed"]
     build_silver("run2012bc_doublemuparked")
-    report = run_dq("run2012bc_doublemuparked", "silver", data_path("silver", "dataset=run2012bc_doublemuparked"))
-    cleaned = pd.read_parquet(data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet"))
+    report = run_dq(
+        "run2012bc_doublemuparked",
+        "silver",
+        data_path("silver", "dataset=run2012bc_doublemuparked"),
+    )
+    cleaned = pd.read_parquet(
+        data_path("silver", "dataset=run2012bc_doublemuparked", "muons", "part.parquet")
+    )
     assert set(cleaned["muon_idx"]) == {0, 1}
     assert report["passed"]
     assert report["metrics"]["muons_before"] == 3

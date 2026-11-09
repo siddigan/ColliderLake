@@ -9,7 +9,7 @@ The ColliderLake 2.0 implementation now lives at the repository root.
 
 # Original ColliderLake README
 
-ColliderLake is a local CMS Open Data lakehouse and research sandbox for the CMS SingleMuon NanoAOD dataset. It supports ROOT inspection, ROOT-to-Parquet conversion, PySpark ETL into a physics lakehouse, SQL access, visualization notebooks, and a downstream DIAMOND research architecture.
+ColliderLake is a local CMS Open Data lakehouse and research sandbox for the CMS SingleMuon NanoAOD dataset. It supports ROOT inspection, ROOT-to-Parquet conversion, PySpark ETL into a physics lakehouse, SQL access, visualization notebooks, and a downstream RECKONING research architecture.
 
 The project is intentionally scoped for reproducible research prototyping, not CERN-scale production processing.
 
@@ -40,7 +40,7 @@ Designed downstream flow:
 
 ```text
 gold curated datasets
-  -> DIAMOND certified physics
+  -> RECKONING certified physics
   -> physics marts
   -> object relations
   -> graph-ready tables
@@ -295,7 +295,7 @@ notebooks/adoc_basic_etl.ipynb
 notebooks/muon_db_00_catalog_and_layers.ipynb
 notebooks/muon_db_01_sql_sandbox.ipynb
 notebooks/muon_db_02_visualization_sandbox.ipynb
-notebooks/muon_db_03_diamond_research_blueprint.ipynb
+notebooks/muon_db_03_reckoning_research_blueprint.ipynb
 ```
 
 Recommended order:
@@ -304,11 +304,11 @@ Recommended order:
 2. `muon_db_00_catalog_and_layers.ipynb`: table catalog, layer definitions, transformations, and business logic.
 3. `muon_db_01_sql_sandbox.ipynb`: SQL exploration.
 4. `muon_db_02_visualization_sandbox.ipynb`: inline plots and graph-style exploratory visuals.
-5. `muon_db_03_diamond_research_blueprint.ipynb`: downstream DIAMOND research design.
+5. `muon_db_03_reckoning_research_blueprint.ipynb`: downstream RECKONING research design.
 
-## DIAMOND Research Architecture
+## RECKONING Research Architecture
 
-DIAMOND defines downstream research layers beyond the current bronze/silver/gold lakehouse:
+RECKONING defines downstream research layers beyond the current bronze/silver/gold lakehouse:
 
 ```text
 D - Detector and data-quality certification
@@ -323,7 +323,7 @@ D - Dissemination-ready datasets and reports
 Start here:
 
 ```text
-docs/DIAMOND_RESEARCH_ARCHITECTURE.md
+docs/RECKONING_RESEARCH_ARCHITECTURE.md
 docs/RESEARCH_LAYER_TABLE_CONTRACTS.md
 docs/RESEARCH_ROADMAP.md
 ```
@@ -342,7 +342,7 @@ python scripts/list_research_layers.py
 - `src/lakehouse/`: PySpark bronze/silver/gold ETL for `muon_db`.
 - `src/access/`: DuckDB access layer for querying generated lakehouse tables.
 - `src/visualization/`: CMS-style histograms and reusable plotting helpers.
-- `src/research/`: DIAMOND downstream research layer registry.
+- `src/research/`: RECKONING downstream research layer registry.
 - `src/utils/`: workspace paths and logging.
 
 ## Data And Git Hygiene
@@ -376,7 +376,7 @@ Implemented:
 - Bronze, silver, and gold `muon_db` tables.
 - DuckDB query layer.
 - CLI and notebook exploration.
-- DIAMOND downstream research architecture design.
+- RECKONING downstream research architecture design.
 
 Not yet implemented:
 

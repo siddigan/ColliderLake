@@ -16,8 +16,10 @@ from src.utils.config import (
 from src.utils.paths import config_path, data_root
 
 
-def resolved_inputs(dataset_id: str, engine: str | None = None) -> dict[str, Any]:
-    _selection_path, _selection, selected_id = selection_for_dataset(dataset_id)
+def resolved_inputs(
+    dataset_id: str, engine: str | None = None, analysis: str | None = None
+) -> dict[str, Any]:
+    _selection_path, selection, selected_id = selection_for_dataset(dataset_id, analysis)
     fit_path = config_path("fits", "resonance_ladder.yaml")
     fit_config = load_yaml(fit_path)
     io_path = config_path("io.yaml")
@@ -33,6 +35,7 @@ def resolved_inputs(dataset_id: str, engine: str | None = None) -> dict[str, Any
     )
     return {
         "dataset_id": dataset_id,
+        "analysis": selection["analysis"],
         "engine": gold_engine(engine),
         "selection_id": selected_id,
         "fit_config_id": fit_config_id(fit_config),
@@ -45,11 +48,12 @@ def resolved_inputs(dataset_id: str, engine: str | None = None) -> dict[str, Any
     }
 
 
-def context_provider(dataset_id: str, engine: str | None = None):
+def context_provider(dataset_id: str, engine: str | None = None, analysis: str | None = None):
     def provider() -> dict[str, Any]:
-        inputs = resolved_inputs(dataset_id, engine)
+        inputs = resolved_inputs(dataset_id, engine, analysis)
         return {
             "dataset_id": inputs["dataset_id"],
+            "analysis": inputs["analysis"],
             "engine": inputs["engine"],
             "selection_id": inputs["selection_id"],
             "fit_config_id": inputs["fit_config_id"],
@@ -78,6 +82,7 @@ def preflight_values(run_id: str, inputs: dict[str, Any], git: dict[str, Any]) -
         "dirty": git.get("dirty", False),
         "dirty_files": git.get("dirty_files", []),
         "selection_id": inputs["selection_id"],
+        "analysis": inputs.get("analysis", "resonance"),
         "engine": inputs.get("engine", "vectorized"),
         "fit_config_id": inputs["fit_config_id"],
         "fit_windows": inputs["fit_windows"],
