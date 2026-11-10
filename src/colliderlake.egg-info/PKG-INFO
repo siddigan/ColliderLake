@@ -1,0 +1,21 @@
+Metadata-Version: 2.4
+Name: colliderlake
+Version: 2.0.0
+Summary: Laptop-scale CMS Open Data lakehouse for Project RESONANCE.
+Requires-Python: <3.12,>=3.11
+Requires-Dist: awkward>=2.6
+Requires-Dist: duckdb>=1.0
+Requires-Dist: hist>=2.7
+Requires-Dist: iminuit>=2.24
+Requires-Dist: matplotlib>=3.8
+Requires-Dist: mplhep>=0.3
+Requires-Dist: numpy>=1.26
+Requires-Dist: pandas>=2.2
+Requires-Dist: pyarrow>=15.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: requests>=2.31
+Requires-Dist: typer>=0.12
+Requires-Dist: uproot>=5.3
+Requires-Dist: pytest>=8.0
+Requires-Dist: ruff>=0.5
+Requires-Dist: mypy>=1.10

@@ -1,0 +1,172 @@
+{
+  "engines": {
+    "duckdb": {
+      "contributing_run_ids": [
+        "20261110T084155.199631Z-a027f9",
+        "20261110T084244.373337Z-ec287e",
+        "20261110T084332.907829Z-90ca89"
+      ],
+      "engine_settings": {
+        "duckdb_memory_limit": "2GB",
+        "duckdb_threads": 2,
+        "engine": "duckdb",
+        "workers": "auto (up to 15; capped by available Parquet parts)",
+        "workers_requested": "auto"
+      },
+      "median": {
+        "cold_start_s": 1.610000000000582,
+        "pairs_per_s": 181830.95620156618,
+        "peak_rss_mb": 2625.84765625,
+        "steady_state_median_s": 1.076062300002377,
+        "wall_s": 48.53178569999727
+      },
+      "per_run": [
+        {
+          "cold_start_s": 1.875,
+          "pairs_per_s": 180209.64889006628,
+          "peak_rss_mb": 2625.84765625,
+          "run_id": "20261110T084155.199631Z-a027f9",
+          "wall_s": 48.96841570000106
+        },
+        {
+          "cold_start_s": 1.6090000000040163,
+          "pairs_per_s": 182390.66749716416,
+          "peak_rss_mb": 2622.21875,
+          "run_id": "20261110T084244.373337Z-ec287e",
+          "wall_s": 48.38285380000161
+        },
+        {
+          "cold_start_s": 1.610000000000582,
+          "pairs_per_s": 181830.95620156618,
+          "peak_rss_mb": 2703.66796875,
+          "run_id": "20261110T084332.907829Z-90ca89",
+          "wall_s": 48.53178569999727
+        }
+      ],
+      "range": {
+        "cold_start_s": {
+          "max": 1.875,
+          "min": 1.6090000000040163
+        },
+        "pairs_per_s": {
+          "max": 182390.66749716416,
+          "min": 180209.64889006628
+        },
+        "peak_rss_mb": {
+          "max": 2703.66796875,
+          "min": 2622.21875
+        },
+        "steady_state_median_s": {
+          "max": 1.0980151999974623,
+          "min": 1.0577722000016365
+        },
+        "wall_s": {
+          "max": 48.96841570000106,
+          "min": 48.38285380000161
+        }
+      }
+    },
+    "vectorized": {
+      "contributing_run_ids": [
+        "20261110T084009.385033Z-88b429",
+        "20261110T084042.916422Z-1e921b",
+        "20261110T084118.746168Z-fb8cb4"
+      ],
+      "engine_settings": {
+        "duckdb_memory_limit": "2GB",
+        "duckdb_threads": 2,
+        "engine": "vectorized",
+        "workers": "auto (up to 15; capped by available Parquet parts)",
+        "workers_requested": "auto"
+      },
+      "median": {
+        "cold_start_s": 9.046999999998661,
+        "pairs_per_s": 247084.1897272024,
+        "peak_rss_mb": 18001.26953125,
+        "steady_state_median_s": 8.889999999999418,
+        "wall_s": 35.71487519999937
+      },
+      "per_run": [
+        {
+          "cold_start_s": 8.98399999999674,
+          "pairs_per_s": 264221.5435133629,
+          "peak_rss_mb": 17838.2890625,
+          "run_id": "20261110T084009.385033Z-88b429",
+          "wall_s": 33.398415900002874
+        },
+        {
+          "cold_start_s": 9.046999999998661,
+          "pairs_per_s": 247084.1897272024,
+          "peak_rss_mb": 18001.26953125,
+          "run_id": "20261110T084042.916422Z-1e921b",
+          "wall_s": 35.71487519999937
+        },
+        {
+          "cold_start_s": 10.235000000000582,
+          "pairs_per_s": 243073.74276494668,
+          "peak_rss_mb": 18157.53515625,
+          "run_id": "20261110T084118.746168Z-fb8cb4",
+          "wall_s": 36.30413100000442
+        }
+      ],
+      "range": {
+        "cold_start_s": {
+          "max": 10.235000000000582,
+          "min": 8.98399999999674
+        },
+        "pairs_per_s": {
+          "max": 264221.5435133629,
+          "min": 243073.74276494668
+        },
+        "peak_rss_mb": {
+          "max": 18157.53515625,
+          "min": 17838.2890625
+        },
+        "steady_state_median_s": {
+          "max": 9.594000000004598,
+          "min": 8.672000000005937
+        },
+        "wall_s": {
+          "max": 36.30413100000442,
+          "min": 33.398415900002874
+        }
+      }
+    }
+  },
+  "excluded_runs": [],
+  "generated_at": "2026-11-10T10:32:51.462475+00:00",
+  "inputs": {
+    "data_root": "C:\\Ewok\\Abomination\\Theory of E\\V-TRY\\ColliderLake\\data",
+    "fit_config_id": "4c5247e8",
+    "gold_config_sha256": "914c3b7730ecfdf4a151c2bf83e64ff2f427b1b04069b467a421af1b69dc4b22",
+    "io_config_sha256": "a097898a393d65428e245bef88782466db1b332292217559a3a11bc112937a5c",
+    "selection_id": "4d93aea9",
+    "silver_context_hashes_by_engine": {
+      "duckdb": [
+        "3ba54a6116b9ea71c8aea5be310c5a70c93eac00f9105055868058374e06f6f2"
+      ],
+      "vectorized": [
+        "af93fce89596774a39937fb0949640c1846415aeb2412fa1a06c89bbd1bf18ff"
+      ]
+    },
+    "silver_part_list_fingerprint": "ff791daa80be99ebb9c8bb7e03ed084f6cec80661c95ae3b3d43eeee0bcdf898"
+  },
+  "protocol": {
+    "inputs_must_match": true,
+    "median_method": "median of wall_s over contributing runs",
+    "permitted_deltas": [
+      "engine",
+      "duckdb_threads",
+      "duckdb_memory_limit"
+    ],
+    "range_method": "min-max",
+    "runs_per_engine_min": 3
+  },
+  "scale": "fixture (20 parts, 6893480 silver rows)",
+  "units": {
+    "cold_start_s": "seconds",
+    "pairs_per_s": "pairs/second",
+    "peak_rss_mb": "mebibytes",
+    "wall_s": "seconds"
+  }
+}

@@ -1,0 +1,3 @@
+[console_scripts]
+colliderlake = src.cli:main
+hodo = hodoscope.cli:main

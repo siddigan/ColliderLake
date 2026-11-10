@@ -37,6 +37,7 @@ include = ["hodoscope*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = ["realdata: validates artifacts from an available real-data run"]
 
 [tool.ruff]
 line-length = 100

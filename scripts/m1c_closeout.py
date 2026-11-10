@@ -292,10 +292,29 @@ def ensure_performance_pointer(path: str | Path) -> bool:
     return write_if_changed(doc, updated)
 
 
+def render_engine_table(benchmark: dict[str, Any]) -> str:
+    rows = [
+        "| Engine | Wall median (range), s | Peak RSS median (range), MiB | Pairs/s median (range) | Cold start median (range), s | Steady query median (range), s | Contributing run IDs |",
+        "|---|---:|---:|---:|---:|---:|---|",
+    ]
+    for engine, item in benchmark["engines"].items():
+        med, ranges = item["median"], item["range"]
+        cells = []
+        for key in ("wall_s", "peak_rss_mb", "pairs_per_s", "cold_start_s", "steady_state_median_s"):
+            digits = 1 if key in ("peak_rss_mb", "pairs_per_s") else 3
+            cells.append(
+                f"{med[key]:.{digits}f} ({ranges[key]['min']:.{digits}f}-{ranges[key]['max']:.{digits}f})"
+            )
+        run_ids = ", ".join(f"`{run_id}`" for run_id in item["contributing_run_ids"])
+        rows.append(f"| {engine} | " + " | ".join(cells) + f" | {run_ids} |")
+    return "\n".join(rows)
+
+
 def validate_performance_doc(
     document_path: str | Path,
     benchmark_path: str | Path,
     registry_root: str | Path,
+    ledger_run_ids: tuple[str, ...] | None = None,
 ) -> None:
     """Compare rendered engine and ledger numbers to their source artifacts."""
     text = Path(document_path).read_text(encoding="utf-8")
@@ -319,7 +338,10 @@ def validate_performance_doc(
             precision = 1 if key in ("peak_rss_mb", "pairs_per_s") else 3
             if any(round(a, precision) != round(e, precision) for a, e in zip(actual, expected)):
                 raise ValueError(f"{engine} {key} document values differ from benchmark JSON")
-    ledger_ids = (
+        for run_id in item["contributing_run_ids"]:
+            if f"`{run_id}`" not in text:
+                raise ValueError(f"performance document lacks contributing run ID {run_id}")
+    ledger_ids = ledger_run_ids if ledger_run_ids is not None else (
         "20261102T212222.616810Z-81e86a",
         "20261102T212222.888504Z-ea3c43",
         "20261110T080408.893920Z-e75d65",
@@ -377,12 +399,19 @@ def median_run_ids(registry_root: str | Path) -> dict[str, str]:
     return result
 
 
-def sync_engine_tags(registry_root: str | Path) -> int:
+def sync_engine_tags(
+    registry_root: str | Path,
+    run_ids: tuple[str, ...] = RUN_IDS,
+    previous_vectorized_id: str | None = "20261109T225720.033929Z-2d8f9b",
+) -> int:
     root = Path(registry_root)
-    target_ids = median_run_ids(root)
-    old_vectorized_id = "20261109T225720.033929Z-2d8f9b"
+    payload = build_engine_benchmark(root, run_ids)
+    target_ids = {
+        engine: sorted(item["per_run"], key=lambda run: (run["wall_s"], run["run_id"]))[1]["run_id"]
+        for engine, item in payload["engines"].items()
+    }
     operations = (
-        ("engine-bench-vectorized", target_ids["vectorized"], old_vectorized_id, True),
+        ("engine-bench-vectorized", target_ids["vectorized"], previous_vectorized_id, previous_vectorized_id is not None),
         ("engine-bench-duckdb", target_ids["duckdb"], None, False),
         ("engine-bench-vectorized-20261110", target_ids["vectorized"], None, False),
         ("engine-bench-duckdb-20261110", target_ids["duckdb"], None, False),
@@ -398,6 +427,9 @@ def sync_engine_tags(registry_root: str | Path) -> int:
             print(f"tag {label} already points to {target}; no write")
             continue
         if is_move:
+            if current == target:
+                print(f"tag {label} already points to {target}; no write")
+                continue
             if current != expected_old:
                 raise RuntimeError(
                     f"STOP tag operation {label}: expected {expected_old}, found {current}"

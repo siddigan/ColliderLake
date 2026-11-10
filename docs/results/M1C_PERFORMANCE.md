@@ -1,6 +1,8 @@
 # M1c performance closeout
 
-Evidence is read from Hodoscope run records under `data/results/runs/<run_id>/run.json`, `data/results/engine_benchmark.json`, and the pinned raw manifest. Rates and speedups are derived with the formulas shown. Machine-state details not present in individual records are marked UNRESOLVED.
+Evidence is read from Hodoscope run records under `data/results/runs/<run_id>/run.json`, `docs/results/engine_benchmark.json`, and the pinned raw manifest. Rates and speedups are derived with the formulas shown. Machine-state details not present in individual records are marked UNRESOLVED.
+
+Published benchmark snapshot: `docs/results/engine_benchmark.json`; SHA-256 `32991b5470fc947ed695dc472dcd00d3e8f8e02376d7b116505e2b24e0796eaa`; producing run IDs: `20261110T084009.385033Z-88b429`, `20261110T084042.916422Z-1e921b`, `20261110T084118.746168Z-fb8cb4`, `20261110T084155.199631Z-a027f9`, `20261110T084244.373337Z-ec287e`, `20261110T084332.907829Z-90ca89`.
 
 ## Decision rule and verdict
 
@@ -25,7 +27,7 @@ Sources: each duration and state is the named run record above; duration units a
 
 ## Engine benchmark
 
-Source: `data/results/engine_benchmark.json` (including the silver part-list fingerprint and per-engine Hodoscope context hashes); medians are the median of three recorded gold-stage runs, ranges are min-max. Cold start is reported separately from steady-state query median.
+Registry run records under `data/results/runs/` are authoritative; `docs/results/engine_benchmark.json` is the committed published snapshot, including the silver part-list fingerprint and per-engine Hodoscope context hashes. Medians are the median of three recorded gold-stage runs, ranges are min-max. Cold start is reported separately from steady-state query median.
 
 | Engine | Wall median (range), s | Peak RSS median (range), MiB | Pairs/s median (range) | Cold start median (range), s | Steady query median (range), s | Contributing run IDs |
 |---|---:|---:|---:|---:|---:|---|
