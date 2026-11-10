@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import statistics
 import tempfile
 from datetime import UTC, datetime
@@ -119,6 +120,9 @@ def _input_identity(
     ).encode("utf-8")
     return {
         "silver_part_list_fingerprint": hashlib.sha256(signature_bytes).hexdigest(),
+        "silver_context_hashes_by_engine": {
+            engine: sorted(hashes) for engine, hashes in sorted(hashes_by_engine.items())
+        },
         "selection_id": reference["selection_id"],
         "fit_config_id": reference["fit_config_id"],
         "gold_config_sha256": reference["gold_config_sha256"],
@@ -158,7 +162,7 @@ def build_engine_benchmark(
         values = {
             "run_id": run_id,
             "wall_s": float(stage["duration_s"]),
-            "peak_rss_bytes": int(metrics["peak_rss_bytes"]),
+            "peak_rss_mb": int(metrics["peak_rss_bytes"]) / (1024 * 1024),
             "pairs_per_s": float(stage["rows_per_s"]),
             "cold_start_s": _cold_start(engine, stage),
         }
@@ -176,7 +180,7 @@ def build_engine_benchmark(
     engines: dict[str, Any] = {}
     for engine, runs in grouped.items():
         per_run = [item["values"] for item in runs]
-        fields = ("wall_s", "peak_rss_bytes", "pairs_per_s", "cold_start_s")
+        fields = ("wall_s", "peak_rss_mb", "pairs_per_s", "cold_start_s")
         median = {
             field: statistics.median(item[field] for item in per_run) for field in fields
         }
@@ -222,7 +226,7 @@ def build_engine_benchmark(
         "excluded_runs": [],
         "units": {
             "wall_s": "seconds",
-            "peak_rss_bytes": "bytes",
+            "peak_rss_mb": "mebibytes",
             "pairs_per_s": "pairs/second",
             "cold_start_s": "seconds",
         },
@@ -258,6 +262,88 @@ def write_engine_benchmark(
         Path(temporary).unlink(missing_ok=True)
     print(output)
     return True
+
+
+def write_if_changed(path: str | Path, content: str) -> bool:
+    """Write generated closeout text only when its bytes would change."""
+    output = Path(path)
+    encoded = content.encode("utf-8")
+    if output.is_file() and output.read_bytes() == encoded:
+        return False
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output.with_name(f".{output.name}.tmp")
+    try:
+        temporary.write_bytes(encoded)
+        os.replace(temporary, output)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return True
+
+
+def ensure_performance_pointer(path: str | Path) -> bool:
+    doc = Path(path)
+    text = doc.read_text(encoding="utf-8")
+    pointer = "Performance study: see [M1C_PERFORMANCE.md](M1C_PERFORMANCE.md)."
+    if pointer in text:
+        return False
+    section_start = text.index("## 3. Performance baseline")
+    next_section = text.index("\n## 4.", section_start)
+    updated = text[:next_section].rstrip() + "\n\n" + pointer + text[next_section:]
+    return write_if_changed(doc, updated)
+
+
+def validate_performance_doc(
+    document_path: str | Path,
+    benchmark_path: str | Path,
+    registry_root: str | Path,
+) -> None:
+    """Compare rendered engine and ledger numbers to their source artifacts."""
+    text = Path(document_path).read_text(encoding="utf-8")
+    benchmark = json.loads(Path(benchmark_path).read_text(encoding="utf-8"))
+    for engine, item in benchmark["engines"].items():
+        row = next((line for line in text.splitlines() if line.startswith(f"| {engine} |")), None)
+        if row is None:
+            raise ValueError(f"performance document lacks {engine} row")
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        metrics = ("wall_s", "peak_rss_mb", "pairs_per_s", "cold_start_s", "steady_state_median_s")
+        if len(cells) < 7:
+            raise ValueError(f"malformed {engine} benchmark row")
+        for index, key in enumerate(metrics, start=1):
+            match = re.fullmatch(r"([0-9.]+) \(([0-9.]+)-([0-9.]+)\)", cells[index])
+            if not match:
+                raise ValueError(f"malformed {engine} {key} cell")
+            actual = tuple(float(value) for value in match.groups())
+            source = item["median"][key]
+            source_range = item["range"][key]
+            expected = (source, source_range["min"], source_range["max"])
+            precision = 1 if key in ("peak_rss_mb", "pairs_per_s") else 3
+            if any(round(a, precision) != round(e, precision) for a, e in zip(actual, expected)):
+                raise ValueError(f"{engine} {key} document values differ from benchmark JSON")
+    ledger_ids = (
+        "20261102T212222.616810Z-81e86a",
+        "20261102T212222.888504Z-ea3c43",
+        "20261110T080408.893920Z-e75d65",
+        "20261110T082043.046113Z-e9f922",
+    )
+    for run_id in ledger_ids:
+        record = load_record(run_id, registry_root)
+        row = next((line for line in text.splitlines() if f"`{run_id}`" in line), None)
+        if row is None:
+            raise ValueError(f"performance document lacks run ledger row {run_id}")
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        durations = {stage["name"]: stage["duration_s"] for stage in record["stages"]}
+        expected = [durations.get(name) for name in ("bronze", "silver", "gold")]
+        expected.append(sum(durations.values()))
+        actual = [
+            None if value == "N/A" else float(re.search(r"\(([0-9.]+) s\)", value).group(1))
+            for value in cells[1:5]
+        ]
+        for got, want in zip(actual, expected):
+            if want is None:
+                if got is not None:
+                    raise ValueError(f"{run_id}: absent stage rendered as a duration")
+            elif got is None or round(got, 1) != round(want, 1):
+                raise ValueError(f"{run_id}: ledger duration differs from Hodoscope record")
 
 
 def validate_engine_benchmark(

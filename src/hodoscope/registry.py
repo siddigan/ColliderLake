@@ -493,7 +493,7 @@ def _write_tag(
     with _registry_lock, _cross_process_lock(lock_path):
         tags = json.loads(index_path.read_text(encoding="utf-8")) if index_path.exists() else {}
         previous = tags.get(label)
-        if previous == record["run_id"]:
+        if previous == record["run_id"] and move:
             print(f"tag {label} already points to {record['run_id']}; no write")
             return False
         if move:

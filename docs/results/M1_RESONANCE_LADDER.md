@@ -37,6 +37,8 @@ CL2.0.6 baseline — all CL2.0.7+ speedups are measured against this row.
 
 The supplied smoke reference is 1,324,707 pairs / 1,034,022 events. The full-run audit gives 83,057,658 pair rows / 42,812,309 pair-bearing events: ratios calculated directly from these counts are 62.69x pairs and 41.40x pair-bearing events. The supplied 59.5x dataset-statistics ratio compares 61,540,413 full events with the smoke event count; these are different populations/denominators. Sources: `docs/audits/CL2.0.7_PRE_GOLD_FIT_AUDIT.md`, §D, and this ledger's cited files.
 
+
+Performance study: see [M1C_PERFORMANCE.md](M1C_PERFORMANCE.md).
 ## 4. Measured results and interpretation
 
 The core-window Z mass is 90.8619189594322 GeV and the full-window Z mass is 90.7207575824507 GeV. Their measured two-window difference is 141.16137698150055 MeV, calculated from `fits_core_window.json` and `fits_full_window.json`.

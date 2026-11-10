@@ -40,7 +40,23 @@ def acquire_dataset(dataset_id: str) -> Path:
         "files": [_file_entry(path) for path in files],
     }
     output = ensure_parent(raw_dir / "MANIFEST.json")
-    output.write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
+    serialized = json.dumps(manifest, indent=2, sort_keys=True)
+    if output.is_file():
+        try:
+            existing = json.loads(output.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing = None
+        # created_at_utc records the original manifest creation. A matching
+        # manifest is immutable; verification time belongs in the run record.
+        if isinstance(existing, dict):
+            comparable = dict(manifest)
+            prior = dict(existing)
+            comparable.pop("created_at_utc", None)
+            prior.pop("created_at_utc", None)
+            if prior == comparable:
+                logger.info("manifest unchanged; preserving write-once file %s", output)
+                return output
+    output.write_text(serialized, encoding="utf-8")
     return output
 
 

@@ -243,6 +243,14 @@ def _execute_pipeline(
                         engine_metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
                         for key, value in engine_metrics.items():
                             hstage.metric(key, value)
+                if item == "acquire" and output is not None:
+                    import hashlib
+
+                    manifest_output = Path(output)
+                    if manifest_output.is_file():
+                        hstage.metric("manifest_sha256", hashlib.sha256(manifest_output.read_bytes()).hexdigest())
+                    hstage.metric("manifest_verified_at_utc", hstage.started_at)
+                    hstage.metric("manifest_verified_by_run_id", recorder.run_id)
                 if item == "figures" and output is not None:
                     manifest_path = Path(output) / "manifest.json"
                     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
