@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .log import configure_logging, get_logger
-from .registry import add_tag, all_records, load_record, resolve_id, run, runs_root
+from .registry import add_tag, all_records, load_record, move_tag, resolve_id, run, runs_root
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -26,6 +26,8 @@ def _parser() -> argparse.ArgumentParser:
     tag = commands.add_parser("tag", help="Assign a unique label to a run")
     tag.add_argument("identifier")
     tag.add_argument("label")
+    tag.add_argument("--move", action="store_true", help="move an existing tag with a guard")
+    tag.add_argument("--expected-current", help="required current run ID when moving a tag")
 
     diff = commands.add_parser("diff", help="Compare two run records")
     diff.add_argument("old")
@@ -49,8 +51,14 @@ def main() -> int:
         _show_run(args.identifier)
     elif args.command == "tag":
         run_id = resolve_id(args.identifier)
-        add_tag(run_id, args.label)
-        print(f"tag {args.label} -> {run_id}")
+        if args.move:
+            if not args.expected_current:
+                raise SystemExit("hodo tag --move requires --expected-current RUN_ID")
+            move_tag(run_id, args.label, args.expected_current)
+        else:
+            if args.expected_current:
+                raise SystemExit("--expected-current is only valid with --move")
+            add_tag(run_id, args.label)
     elif args.command == "diff":
         return _diff(args.old, args.new)
     elif args.command == "sql":

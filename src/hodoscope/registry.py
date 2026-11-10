@@ -463,6 +463,26 @@ def _cross_process_lock(path: Path):
 
 
 def add_tag(run_id: str, label: str, root: str | Path | None = None) -> None:
+    _write_tag(run_id, label, root, move=False, expected_current=None)
+
+
+def move_tag(
+    run_id: str,
+    label: str,
+    expected_current: str,
+    root: str | Path | None = None,
+) -> bool:
+    return _write_tag(run_id, label, root, move=True, expected_current=expected_current)
+
+
+def _write_tag(
+    run_id: str,
+    label: str,
+    root: str | Path | None,
+    *,
+    move: bool,
+    expected_current: str | None,
+) -> bool:
     if not label or any(c.isspace() for c in label):
         raise ValueError("tag must be non-empty and contain no whitespace")
     record = load_record(run_id, root)
@@ -472,7 +492,26 @@ def add_tag(run_id: str, label: str, root: str | Path | None = None) -> None:
     lock_path = registry_root / ".tags.lock"
     with _registry_lock, _cross_process_lock(lock_path):
         tags = json.loads(index_path.read_text(encoding="utf-8")) if index_path.exists() else {}
-        if label in tags:
+        previous = tags.get(label)
+        if previous == record["run_id"]:
+            print(f"tag {label} already points to {record['run_id']}; no write")
+            return False
+        if move:
+            if previous is None:
+                raise KeyError(f"cannot move absent tag {label!r}")
+            if previous != expected_current:
+                raise ValueError(
+                    f"tag {label!r} points to unexpected run {previous!r}; "
+                    f"expected {expected_current!r}"
+                )
+            tags[label] = record["run_id"]
+        elif previous is not None:
             raise ValueError(f"tag {label!r} already points to run {tags[label]!r}")
-        tags[label] = record["run_id"]
+        else:
+            tags[label] = record["run_id"]
         _atomic_json(index_path, tags)
+    if move:
+        print(f"tag {label} moved {previous} -> {record['run_id']}")
+    else:
+        print(f"tag {label} -> {record['run_id']}")
+    return True
