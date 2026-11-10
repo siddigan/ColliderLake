@@ -1,0 +1,112 @@
+{
+  "abort_reason": null,
+  "backfilled": false,
+  "context": {
+    "colliderlake_inputs": {
+      "analysis": "resonance",
+      "data_root": "<data_root>",
+      "dataset_id": "run2012bc_doublemuparked",
+      "duckdb_memory_limit": "2GB",
+      "duckdb_threads": 2,
+      "engine": "vectorized",
+      "figures_config_sha256": "649ef9ea415ed0da270ae613551544b08dded08c0a56b863028d5d87e72b7ecd",
+      "fit_config_id": "4c5247e8",
+      "fit_window_jpsi": [
+        2.8,
+        3.4
+      ],
+      "fit_window_psi2s": [
+        3.4,
+        3.95
+      ],
+      "fit_window_upsilon": [
+        8.5,
+        11.5
+      ],
+      "fit_window_z": [
+        86.0,
+        96.0
+      ],
+      "fixture_size": "configured silver input",
+      "gold_config_sha256": "914c3b7730ecfdf4a151c2bf83e64ff2f427b1b04069b467a421af1b69dc4b22",
+      "gold_max_parts": "all",
+      "io_config_sha256": "a097898a393d65428e245bef88782466db1b332292217559a3a11bc112937a5c",
+      "selection_id": "4d93aea9",
+      "workers": "auto (up to 15; capped by available Parquet parts)",
+      "workers_requested": "auto"
+    }
+  },
+  "context_hashes": {
+    "colliderlake_inputs": "a62c15efe19f1adecc13b45a3e3b8b084d5406c565beb196e3619111cafb502c"
+  },
+  "context_sha256": "0f0c3654537a8b706d337d3db1726523818f4a63f030a17cb941be89f33fd9b3",
+  "ended_at": "2026-11-10T08:18:42.196110+00:00",
+  "env": {
+    "cpu_count": 16,
+    "free_disk_gb": 99.56073760986328,
+    "platform": "Windows-10-10.0.26300-SP0",
+    "python": "3.11.15",
+    "total_ram_gb": 31.398487091064453,
+    "vars": {}
+  },
+  "exit_code": null,
+  "failed_stage": null,
+  "failure_scope": null,
+  "git": {
+    "branch": "main",
+    "commit": "a29342558c4125e30fa8ec413760f0f4d3f8efda",
+    "dirty": false,
+    "dirty_files": []
+  },
+  "name": "colliderlake:run2012bc_doublemuparked:bronze",
+  "preflight": {
+    "analysis": "resonance",
+    "commit": "a29342558c4125e30fa8ec413760f0f4d3f8efda",
+    "data_root": "<data_root>",
+    "dirty": false,
+    "dirty_files": [],
+    "engine": "vectorized",
+    "fit_config_id": "4c5247e8",
+    "fit_windows": {
+      "jpsi": [
+        2.8,
+        3.4
+      ],
+      "psi2s": [
+        3.4,
+        3.95
+      ],
+      "upsilon": [
+        8.5,
+        11.5
+      ],
+      "z": [
+        86.0,
+        96.0
+      ]
+    },
+    "run_id": "20261110T080408.893920Z-e75d65",
+    "selection_id": "4d93aea9",
+    "workers": "auto (up to 15; capped by available Parquet parts)",
+    "workers_requested": "auto"
+  },
+  "run_id": "20261110T080408.893920Z-e75d65",
+  "stages": [
+    {
+      "duration_s": 873.1915547000026,
+      "ended_at": "2026-11-10T08:18:42.182754+00:00",
+      "metrics": {
+        "batches": 179,
+        "peak_rss_bytes": 3852607488
+      },
+      "name": "bronze",
+      "rows_out": 210862869,
+      "rows_per_s": 241485.23638944828,
+      "started_at": "2026-11-10T08:04:08.991491+00:00",
+      "status": "succeeded"
+    }
+  ],
+  "started_at": "2026-11-10T08:04:08.893920+00:00",
+  "state": "succeeded",
+  "summary": "ColliderLake run summary\nstage    | status  | duration | rows_out | rows_per_second\n---------|---------|----------|----------|----------------\nbronze   | SUCCESS | 14m33s   | 210,862,869 | 241486.50\n\ndataset_id: run2012bc_doublemuparked\noverall_status: SUCCESS\ntotal_wall_time: 14m33s\nworkers: auto\nstage_speedup: measured by scripts/bench_compare.py against a prior run summary\npipeline_speedup: measured by scripts/bench_compare.py against a prior run summary\nanalysis: resonance\nselection_id: 4d93aea9\nfit_config_id: 4c5247e8\nresults: <data_root>/results\ndq_report: <data_root>/results/dq_report.json\n"
+}

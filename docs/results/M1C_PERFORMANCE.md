@@ -4,6 +4,8 @@ Evidence is read from Hodoscope run records under `data/results/runs/<run_id>/ru
 
 Published benchmark snapshot: `docs/results/engine_benchmark.json`; SHA-256 `32991b5470fc947ed695dc472dcd00d3e8f8e02376d7b116505e2b24e0796eaa`; producing run IDs: `20261110T084009.385033Z-88b429`, `20261110T084042.916422Z-1e921b`, `20261110T084118.746168Z-fb8cb4`, `20261110T084155.199631Z-a027f9`, `20261110T084244.373337Z-ec287e`, `20261110T084332.907829Z-90ca89`.
 
+Sanitized copies of cited run records are committed under `docs/results/runs/`.
+
 ## Decision rule and verdict
 
 idle bronze <= 16m30s -> ENVIRONMENTAL verdict -> proceed to Task 3  

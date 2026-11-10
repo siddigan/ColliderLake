@@ -1,0 +1,285 @@
+{
+  "abort_reason": null,
+  "backfilled": false,
+  "context": {
+    "colliderlake_inputs": {
+      "analysis": "resonance",
+      "data_root": "<data_root>",
+      "dataset_id": "run2012bc_doublemuparked",
+      "duckdb_memory_limit": "2GB",
+      "duckdb_threads": 2,
+      "engine": "vectorized",
+      "figures_config_sha256": "649ef9ea415ed0da270ae613551544b08dded08c0a56b863028d5d87e72b7ecd",
+      "fit_config_id": "4c5247e8",
+      "fit_window_jpsi": [
+        2.8,
+        3.4
+      ],
+      "fit_window_psi2s": [
+        3.4,
+        3.95
+      ],
+      "fit_window_upsilon": [
+        8.5,
+        11.5
+      ],
+      "fit_window_z": [
+        86.0,
+        96.0
+      ],
+      "fixture_size": "6893480 event rows across 20 parts",
+      "gold_config_sha256": "914c3b7730ecfdf4a151c2bf83e64ff2f427b1b04069b467a421af1b69dc4b22",
+      "gold_max_parts": "20",
+      "io_config_sha256": "a097898a393d65428e245bef88782466db1b332292217559a3a11bc112937a5c",
+      "selection_id": "4d93aea9",
+      "workers": "auto (up to 15; capped by available Parquet parts)",
+      "workers_requested": "auto"
+    }
+  },
+  "context_hashes": {
+    "colliderlake_inputs": "af93fce89596774a39937fb0949640c1846415aeb2412fa1a06c89bbd1bf18ff"
+  },
+  "context_sha256": "a978b9c4fce20ca8df9aa60fab52c2993595b71d323a7ab1b4863777cf321a31",
+  "ended_at": "2026-11-10T08:41:55.169210+00:00",
+  "env": {
+    "cpu_count": 16,
+    "free_disk_gb": 98.3322639465332,
+    "platform": "Windows-10-10.0.26300-SP0",
+    "python": "3.11.15",
+    "total_ram_gb": 31.398487091064453,
+    "vars": {
+      "COLLIDERLAKE_BENCH_FIXTURE_SIZE": "6893480 event rows across 20 parts",
+      "COLLIDERLAKE_DQ_MEM": "2GB",
+      "COLLIDERLAKE_DUCKDB_THREADS": "2",
+      "COLLIDERLAKE_GOLD_MAX_PARTS": "20",
+      "HODOSCOPE_ROOT": "<data_root>/results"
+    }
+  },
+  "exit_code": null,
+  "failed_stage": null,
+  "failure_scope": null,
+  "git": {
+    "branch": "main",
+    "commit": "a29342558c4125e30fa8ec413760f0f4d3f8efda",
+    "dirty": true,
+    "dirty_files": [
+      "data/raw/run2012bc_doublemuparked/MANIFEST.json"
+    ]
+  },
+  "name": "colliderlake:run2012bc_doublemuparked:gold",
+  "preflight": {
+    "analysis": "resonance",
+    "commit": "a29342558c4125e30fa8ec413760f0f4d3f8efda",
+    "data_root": "<data_root>",
+    "dirty": true,
+    "dirty_files": [
+      "data/raw/run2012bc_doublemuparked/MANIFEST.json"
+    ],
+    "engine": "vectorized",
+    "fit_config_id": "4c5247e8",
+    "fit_windows": {
+      "jpsi": [
+        2.8,
+        3.4
+      ],
+      "psi2s": [
+        3.4,
+        3.95
+      ],
+      "upsilon": [
+        8.5,
+        11.5
+      ],
+      "z": [
+        86.0,
+        96.0
+      ]
+    },
+    "run_id": "20261110T084118.746168Z-fb8cb4",
+    "selection_id": "4d93aea9",
+    "workers": "auto (up to 15; capped by available Parquet parts)",
+    "workers_requested": "auto"
+  },
+  "run_id": "20261110T084118.746168Z-fb8cb4",
+  "stages": [
+    {
+      "duration_s": 36.30413100000442,
+      "ended_at": "2026-11-10T08:41:55.160219+00:00",
+      "metrics": {
+        "batches": 20,
+        "engine": "vectorized",
+        "parts": [
+          {
+            "output_bytes": 27947381,
+            "pairs_per_second": 42974.49926721788,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0000.parquet",
+            "peak_rss_bytes": 1238274048,
+            "query_seconds": 10.235000000000582,
+            "rows": 439844
+          },
+          {
+            "output_bytes": 28056280,
+            "pairs_per_second": 43935.90380601367,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0001.parquet",
+            "peak_rss_bytes": 1225379840,
+            "query_seconds": 10.06300000000192,
+            "rows": 442127
+          },
+          {
+            "output_bytes": 28068400,
+            "pairs_per_second": 43392.72762915394,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0002.parquet",
+            "peak_rss_bytes": 1246937088,
+            "query_seconds": 10.202999999994063,
+            "rows": 442736
+          },
+          {
+            "output_bytes": 27976797,
+            "pairs_per_second": 44779.03078329433,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0003.parquet",
+            "peak_rss_bytes": 1240248320,
+            "query_seconds": 9.843000000000757,
+            "rows": 440760
+          },
+          {
+            "output_bytes": 28062086,
+            "pairs_per_second": 45040.562576412434,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0004.parquet",
+            "peak_rss_bytes": 1255206912,
+            "query_seconds": 9.812000000005355,
+            "rows": 441938
+          },
+          {
+            "output_bytes": 27983340,
+            "pairs_per_second": 44250.978031910774,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0005.parquet",
+            "peak_rss_bytes": 1254592512,
+            "query_seconds": 9.968999999997322,
+            "rows": 441138
+          },
+          {
+            "output_bytes": 28072829,
+            "pairs_per_second": 46207.87220717001,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0006.parquet",
+            "peak_rss_bytes": 1246310400,
+            "query_seconds": 9.577999999994063,
+            "rows": 442579
+          },
+          {
+            "output_bytes": 27969376,
+            "pairs_per_second": 42242.958421145704,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0007.parquet",
+            "peak_rss_bytes": 1243607040,
+            "query_seconds": 10.43800000000192,
+            "rows": 440932
+          },
+          {
+            "output_bytes": 27958737,
+            "pairs_per_second": 46214.14332181434,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0008.parquet",
+            "peak_rss_bytes": 1250824192,
+            "query_seconds": 9.530999999995402,
+            "rows": 440467
+          },
+          {
+            "output_bytes": 28068502,
+            "pairs_per_second": 44216.5,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0009.parquet",
+            "peak_rss_bytes": 1251467264,
+            "query_seconds": 10.0,
+            "rows": 442165
+          },
+          {
+            "output_bytes": 27825532,
+            "pairs_per_second": 45649.885344985414,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0010.parquet",
+            "peak_rss_bytes": 1236410368,
+            "query_seconds": 9.594000000004598,
+            "rows": 437965
+          },
+          {
+            "output_bytes": 27864353,
+            "pairs_per_second": 44632.7838827778,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0011.parquet",
+            "peak_rss_bytes": 1235320832,
+            "query_seconds": 9.828000000001339,
+            "rows": 438651
+          },
+          {
+            "output_bytes": 28005191,
+            "pairs_per_second": 46948.33634527857,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0012.parquet",
+            "peak_rss_bytes": 1250926592,
+            "query_seconds": 9.406999999999243,
+            "rows": 441643
+          },
+          {
+            "output_bytes": 27967098,
+            "pairs_per_second": 46119.304493564654,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0013.parquet",
+            "peak_rss_bytes": 1249628160,
+            "query_seconds": 9.546999999998661,
+            "rows": 440301
+          },
+          {
+            "output_bytes": 27974847,
+            "pairs_per_second": 44937.123609274284,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0014.parquet",
+            "peak_rss_bytes": 1237929984,
+            "query_seconds": 9.796999999998661,
+            "rows": 440249
+          },
+          {
+            "output_bytes": 27961796,
+            "pairs_per_second": 72885.56308915124,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0015.parquet",
+            "peak_rss_bytes": 1280942080,
+            "query_seconds": 6.046999999998661,
+            "rows": 440739
+          },
+          {
+            "output_bytes": 28032866,
+            "pairs_per_second": 73515.95744676868,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0016.parquet",
+            "peak_rss_bytes": 1274765312,
+            "query_seconds": 6.01600000000326,
+            "rows": 442272
+          },
+          {
+            "output_bytes": 28131052,
+            "pairs_per_second": 73479.68827729032,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0017.parquet",
+            "peak_rss_bytes": 1349931008,
+            "query_seconds": 6.030999999995402,
+            "rows": 443156
+          },
+          {
+            "output_bytes": 28063774,
+            "pairs_per_second": 74130.67515500059,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0018.parquet",
+            "peak_rss_bytes": 1258115072,
+            "query_seconds": 5.9689999999973224,
+            "rows": 442486
+          },
+          {
+            "output_bytes": 28087108,
+            "pairs_per_second": 76744.66608847263,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0019.parquet",
+            "peak_rss_bytes": 1285726208,
+            "query_seconds": 5.764999999999418,
+            "rows": 442433
+          }
+        ],
+        "peak_rss_bytes": 19039555584
+      },
+      "name": "gold",
+      "rows_out": 8824581,
+      "rows_per_s": 243073.74276494668,
+      "started_at": "2026-11-10T08:41:18.855987+00:00",
+      "status": "succeeded"
+    }
+  ],
+  "started_at": "2026-11-10T08:41:18.746168+00:00",
+  "state": "succeeded",
+  "summary": "ColliderLake run summary\nstage    | status  | duration | rows_out | rows_per_second\n---------|---------|----------|----------|----------------\ngold     | SUCCESS | 36.2s    | 8,824,581 | 243436.72\n\ndataset_id: run2012bc_doublemuparked\noverall_status: SUCCESS\ntotal_wall_time: 36.3s\nworkers: auto\nstage_speedup: measured by scripts/bench_compare.py against a prior run summary\npipeline_speedup: measured by scripts/bench_compare.py against a prior run summary\nanalysis: resonance\nselection_id: 4d93aea9\nfit_config_id: 4c5247e8\nresults: <data_root>/results\ndq_report: <data_root>/results/dq_report.json\n"
+}

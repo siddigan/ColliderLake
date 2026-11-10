@@ -1,0 +1,21 @@
+run_id: 20261110T082043.046113Z-e9f922 — canonical: results/runs/20261110T082043.046113Z-e9f922/
+ColliderLake run summary
+stage    | status  | duration | rows_out | rows_per_second
+---------|---------|----------|----------|----------------
+acquire  | SUCCESS | 1.2s     | 1 | 0.80
+bronze   | SUCCESS | 14m45s   | 210,862,869 | 238002.54
+silver   | SUCCESS | 1m22s    | 209,665,313 | 2548161.95
+gold     | SUCCESS | 2m21s    | 83,057,658 | 587694.29
+fit      | SUCCESS | 4.3s     | 4 | 0.92
+
+dataset_id: run2012bc_doublemuparked
+overall_status: SUCCESS
+total_wall_time: 18m35s
+workers: auto
+stage_speedup: measured by scripts/bench_compare.py against a prior run summary
+pipeline_speedup: measured by scripts/bench_compare.py against a prior run summary
+analysis: resonance
+selection_id: 4d93aea9
+fit_config_id: 4c5247e8
+results: <data_root>/results
+dq_report: <data_root>/results/dq_report.json

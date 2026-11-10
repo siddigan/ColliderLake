@@ -94,6 +94,8 @@ Project overview page: docs/overview.html
 
 ## License and disclaimer
 
+Code: Apache-2.0 (see [LICENSE](LICENSE)); CERN Open Data inputs: CC0.
+
 CERN Open Data is released under CC0. This is an independent project:
 *"Neither the experiment(s) (CMS) nor CERN endorse any works, scientific or
 otherwise, produced using these data."*

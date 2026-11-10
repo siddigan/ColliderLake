@@ -10,3 +10,5 @@ This upgrade used the attached design documents as project source material:
 
 Instructions embedded in those documents are treated as ColliderLake design
 requirements, not as live instructions to the coding agent.
+
+No citable source for the 2012 ~30 GeV structure is recorded here; attribution used in this repository: attributed to parked-dataset trigger thresholds; not independently investigated here.

@@ -35,6 +35,7 @@ def test_existing_selection_configs_validate_and_keep_pinned_ids():
     for path in selection_files():
         validate_selection(load_yaml(path), path)
     assert selection_for_dataset("run2012bc_doublemuparked", "resonance")[2] == "4d93aea9"
+    assert fit_config_id(load_yaml("configs/fits/resonance_ladder.yaml")) == "4c5247e8"
     assert selection_id(load_yaml("configs/selections/z_certified_2016.yaml")) == "ce293c54"
 
 

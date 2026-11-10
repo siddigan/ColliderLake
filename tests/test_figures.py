@@ -5,6 +5,7 @@ import json
 import re
 import shutil
 import sys
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 import numpy as np
@@ -187,7 +188,8 @@ def _assert_tables_match_parquet(directory: Path, fit_path: Path) -> None:
     fits = pd.read_parquet(fit_path).to_dict(orient="records")
     markdown_rows = [
         line.strip("| ").split("|")
-        for line in (directory / "pdg_table.md").read_text(encoding="utf-8").splitlines()[2:]
+        for line in (directory / "pdg_table.md").read_text(encoding="utf-8").splitlines()
+        if line.startswith("| ") and not line.startswith("| Resonance")
     ]
     latex_lines = (directory / "pdg_table.tex").read_text(encoding="utf-8").splitlines()
     latex_rows = [
@@ -200,13 +202,17 @@ def _assert_tables_match_parquet(directory: Path, fit_path: Path) -> None:
     for index, row in enumerate(fits):
         markdown = [cell.strip() for cell in markdown_rows[index]]
         latex = latex_rows[index]
-        assert markdown[0] == latex[0] == row["resonance"]
+        display_name = "Υ(1S)" if row["resonance"] == "upsilon" else row["resonance"]
+        expected_latex_name = r"$\Upsilon(1S)$" if row["resonance"] == "upsilon" else row["resonance"]
+        assert markdown[0] == display_name
+        assert latex[0] == expected_latex_name
         mass_value, mass_unc = markdown[2].split("±")
         latex_mass, latex_unc = latex[2].split("±")
-        assert float(mass_value) == float(row["mass_fit"])
-        assert float(mass_unc) == float(row["mass_stat_unc"])
-        assert float(latex_mass) == float(row["mass_fit"])
-        assert float(latex_unc) == float(row["mass_stat_unc"])
+        expected_mass, expected_unc = _expected_rounded_mass_uncertainty(
+            row["mass_fit"], row["mass_stat_unc"]
+        )
+        assert (mass_value.strip(), mass_unc.strip()) == (expected_mass, expected_unc)
+        assert (latex_mass.strip(), latex_unc.strip()) == (expected_mass, expected_unc)
         assert float(markdown[3]) == float(row["pdg_mass"])
         assert float(latex[3]) == float(row["pdg_mass"])
         expected_shift = (
@@ -224,3 +230,18 @@ def _assert_tables_match_parquet(directory: Path, fit_path: Path) -> None:
         assert window_values == list(row["window"])
         latex_window = [float(value) for value in re.findall(r"[-+\deE.]+", latex[1])]
         assert latex_window == list(row["window"])
+    assert "Υ(1S): 2S/3S constrained at PDG splittings in a shared fit." in (
+        directory / "pdg_table.md"
+    ).read_text(encoding="utf-8")
+    assert r"\Upsilon(1S)$: 2S/3S constrained at PDG splittings in a shared fit" in (
+        directory / "pdg_table.tex"
+    ).read_text(encoding="utf-8")
+
+
+def _expected_rounded_mass_uncertainty(mass: float, uncertainty: float) -> tuple[str, str]:
+    unc = Decimal(str(float(uncertainty)))
+    quantum = Decimal(1).scaleb(unc.adjusted() - 1)
+    decimals = max(0, -quantum.as_tuple().exponent)
+    rounded_unc = unc.quantize(quantum, rounding=ROUND_HALF_UP)
+    rounded_mass = Decimal(str(float(mass))).quantize(quantum, rounding=ROUND_HALF_UP)
+    return f"{rounded_mass:.{decimals}f}", f"{rounded_unc:.{decimals}f}"

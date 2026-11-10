@@ -1,0 +1,958 @@
+{
+  "abort_reason": null,
+  "backfilled": false,
+  "context": {
+    "colliderlake_inputs": {
+      "analysis": "resonance",
+      "data_root": "<data_root>",
+      "dataset_id": "run2012bc_doublemuparked",
+      "duckdb_memory_limit": "2GB",
+      "duckdb_threads": 2,
+      "engine": "vectorized",
+      "figures_config_sha256": "649ef9ea415ed0da270ae613551544b08dded08c0a56b863028d5d87e72b7ecd",
+      "fit_config_id": "4c5247e8",
+      "fit_window_jpsi": [
+        2.8,
+        3.4
+      ],
+      "fit_window_psi2s": [
+        3.4,
+        3.95
+      ],
+      "fit_window_upsilon": [
+        8.5,
+        11.5
+      ],
+      "fit_window_z": [
+        86.0,
+        96.0
+      ],
+      "fixture_size": "configured silver input",
+      "gold_config_sha256": "914c3b7730ecfdf4a151c2bf83e64ff2f427b1b04069b467a421af1b69dc4b22",
+      "gold_max_parts": "all",
+      "io_config_sha256": "a097898a393d65428e245bef88782466db1b332292217559a3a11bc112937a5c",
+      "selection_id": "4d93aea9",
+      "workers": "auto (up to 15; capped by available Parquet parts)",
+      "workers_requested": "auto"
+    }
+  },
+  "context_hashes": {
+    "colliderlake_inputs": "a62c15efe19f1adecc13b45a3e3b8b084d5406c565beb196e3619111cafb502c"
+  },
+  "context_sha256": "0f0c3654537a8b706d337d3db1726523818f4a63f030a17cb941be89f33fd9b3",
+  "ended_at": "2026-11-10T00:01:14.414322+00:00",
+  "env": {
+    "cpu_count": 16,
+    "free_disk_gb": 130.58451080322266,
+    "platform": "Windows-10-10.0.26300-SP0",
+    "python": "3.11.15",
+    "total_ram_gb": 31.398487091064453,
+    "vars": {}
+  },
+  "exit_code": null,
+  "failed_stage": null,
+  "failure_scope": null,
+  "git": {
+    "branch": "main",
+    "commit": "f09676c695244c5b35f6de4aaa16effa59f97c86",
+    "dirty": false,
+    "dirty_files": []
+  },
+  "name": "colliderlake:run2012bc_doublemuparked:figures",
+  "preflight": {
+    "analysis": "resonance",
+    "commit": "f09676c695244c5b35f6de4aaa16effa59f97c86",
+    "data_root": "<data_root>",
+    "dirty": false,
+    "dirty_files": [],
+    "engine": "vectorized",
+    "fit_config_id": "4c5247e8",
+    "fit_windows": {
+      "jpsi": [
+        2.8,
+        3.4
+      ],
+      "psi2s": [
+        3.4,
+        3.95
+      ],
+      "upsilon": [
+        8.5,
+        11.5
+      ],
+      "z": [
+        86.0,
+        96.0
+      ]
+    },
+    "run_id": "20261110T000101.653408Z-eed7ca",
+    "selection_id": "4d93aea9",
+    "workers": "auto (up to 15; capped by available Parquet parts)",
+    "workers_requested": "auto"
+  },
+  "run_id": "20261110T000101.653408Z-eed7ca",
+  "stages": [
+    {
+      "duration_s": 12.6425835,
+      "ended_at": "2026-11-10T00:01:14.406320+00:00",
+      "metrics": {
+        "batches": 1,
+        "figure_files": [
+          {
+            "location": "canonical",
+            "name": "dimuon_ladder.pdf",
+            "sha256": "aaa2ec00cebd662d3d1508ac465d36cc70a6eb2984de7798f3a17ba432f75aa0"
+          },
+          {
+            "location": "results/figures",
+            "name": "dimuon_ladder.pdf",
+            "sha256": "aaa2ec00cebd662d3d1508ac465d36cc70a6eb2984de7798f3a17ba432f75aa0"
+          },
+          {
+            "location": "canonical",
+            "name": "dimuon_ladder.png",
+            "sha256": "6eb5bb0271141f9c646abd88c0657e1b8925b61f1a26873b48e0a5c7fa38c9e7"
+          },
+          {
+            "location": "results/figures",
+            "name": "dimuon_ladder.png",
+            "sha256": "6eb5bb0271141f9c646abd88c0657e1b8925b61f1a26873b48e0a5c7fa38c9e7"
+          },
+          {
+            "location": "canonical",
+            "name": "jpsi_fit.pdf",
+            "sha256": "a14d80b707d009b8f71f384affe4343bd8f6ce4e7c76ac9c59e55d9c5089391d"
+          },
+          {
+            "location": "results/figures",
+            "name": "jpsi_fit.pdf",
+            "sha256": "a14d80b707d009b8f71f384affe4343bd8f6ce4e7c76ac9c59e55d9c5089391d"
+          },
+          {
+            "location": "canonical",
+            "name": "jpsi_fit.png",
+            "sha256": "b92fea19f31475bf6ad08e210ce10e326ea3209a1de5379f1611a6e71f80fc06"
+          },
+          {
+            "location": "results/figures",
+            "name": "jpsi_fit.png",
+            "sha256": "b92fea19f31475bf6ad08e210ce10e326ea3209a1de5379f1611a6e71f80fc06"
+          },
+          {
+            "location": "canonical",
+            "name": "psi2s_fit.pdf",
+            "sha256": "5d36c77f7de3e36946324e42c87818e216ecbfb73dc057255c920593f9f0128f"
+          },
+          {
+            "location": "results/figures",
+            "name": "psi2s_fit.pdf",
+            "sha256": "5d36c77f7de3e36946324e42c87818e216ecbfb73dc057255c920593f9f0128f"
+          },
+          {
+            "location": "canonical",
+            "name": "psi2s_fit.png",
+            "sha256": "6d627b800155fdfee97e74ae4c92e8b1c7cedeea6843f493837b20a920aeef9b"
+          },
+          {
+            "location": "results/figures",
+            "name": "psi2s_fit.png",
+            "sha256": "6d627b800155fdfee97e74ae4c92e8b1c7cedeea6843f493837b20a920aeef9b"
+          },
+          {
+            "location": "canonical",
+            "name": "upsilon_fit.pdf",
+            "sha256": "a2ca4822179e5fafddbaa00f002a17d4ae57e4afda7ca2f0cb89059145002cdc"
+          },
+          {
+            "location": "results/figures",
+            "name": "upsilon_fit.pdf",
+            "sha256": "a2ca4822179e5fafddbaa00f002a17d4ae57e4afda7ca2f0cb89059145002cdc"
+          },
+          {
+            "location": "canonical",
+            "name": "upsilon_fit.png",
+            "sha256": "e79c19be7248d7507d87ec439f39f644144975130b6038b6756aec1cd18afbb4"
+          },
+          {
+            "location": "results/figures",
+            "name": "upsilon_fit.png",
+            "sha256": "e79c19be7248d7507d87ec439f39f644144975130b6038b6756aec1cd18afbb4"
+          },
+          {
+            "location": "canonical",
+            "name": "z_fit.pdf",
+            "sha256": "063ba0ccc56eb66a8db02cb2e6aa2af94a573615b95af7809a80d5ec178876bb"
+          },
+          {
+            "location": "results/figures",
+            "name": "z_fit.pdf",
+            "sha256": "063ba0ccc56eb66a8db02cb2e6aa2af94a573615b95af7809a80d5ec178876bb"
+          },
+          {
+            "location": "canonical",
+            "name": "z_fit.png",
+            "sha256": "a5bc10ea67986ed0d654ce8ae86c82782f7699c20ca4ed8528867aa84c548074"
+          },
+          {
+            "location": "results/figures",
+            "name": "z_fit.png",
+            "sha256": "a5bc10ea67986ed0d654ce8ae86c82782f7699c20ca4ed8528867aa84c548074"
+          },
+          {
+            "location": "canonical",
+            "name": "pdg_table.md",
+            "sha256": "591f2bd71d98d6140159c2779d5eb953c253e6992e59e62df53124ae86f9d388"
+          },
+          {
+            "location": "results/figures",
+            "name": "pdg_table.md",
+            "sha256": "591f2bd71d98d6140159c2779d5eb953c253e6992e59e62df53124ae86f9d388"
+          },
+          {
+            "location": "canonical",
+            "name": "pdg_table.tex",
+            "sha256": "b7e7ef44f35bd53d9b4c3c49bbc68f5d34e3c7060b78034d20fd819cc2966763"
+          },
+          {
+            "location": "results/figures",
+            "name": "pdg_table.tex",
+            "sha256": "b7e7ef44f35bd53d9b4c3c49bbc68f5d34e3c7060b78034d20fd819cc2966763"
+          }
+        ],
+        "figure_inputs": {
+          "fits": {
+            "path": "<data_root>/results/analysis=resonance/dataset=run2012bc_doublemuparked/fits.parquet",
+            "sha256": "9163b7705ab7ed79418df90f43d8e6456a1bf446cd0f6a1b0ad7e3056dfe37c4"
+          },
+          "gold": [
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0000.parquet",
+              "sha256": "96cae07ab26046e8b5430f6a9a3aea3adf8a55c50519798d647d1e634adfdad2"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0001.parquet",
+              "sha256": "77967bd6ee123c5b8b4cde839863d2349471db0a17e7e55e775bc9881d593243"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0002.parquet",
+              "sha256": "d6d8f83dc2523bd1d0b221a78dcb7949bd08c93d042b73e80db3d32260069d60"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0003.parquet",
+              "sha256": "9d8f55b80e42d7c21cf3f55a5cef4cae72fb909e643dab75d0890fbbc585f1a6"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0004.parquet",
+              "sha256": "d95f8560b5ac2a95a5a44f2cd9009a42cadbb8e24af4ec5aef6c09a3d00ce43d"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0005.parquet",
+              "sha256": "e3f24697710082c43df13b37d9392e2359845ecb26c98f67a88c2f7687b058c2"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0006.parquet",
+              "sha256": "9eb481a73bcb331d63c1f3710861bd6c9e238f44c5b69d919484defdd56922c3"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0007.parquet",
+              "sha256": "00ad6f4bfd3c8d7f7124e787ccb1751c798f34f8bb407f95ccc7f3cb5fc4aaa1"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0008.parquet",
+              "sha256": "ec4ef285963ed607aa1eadfd600549713523e47ecc1991233ca7af2ac8bbaac5"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0009.parquet",
+              "sha256": "d50506e80442fd17b8b1fe6c73419bbb6d0ac0090a42af84542084ea10355c59"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0010.parquet",
+              "sha256": "862fb03ce7e2d5f68989c9dc9b19338fa54bffe39cf15e0866164333fca1efdb"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0011.parquet",
+              "sha256": "8b8e2b595c946dfeb2fc9816110159d18b66581ab6cc3bc266e9a656c4f22ac7"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0012.parquet",
+              "sha256": "99783ae5eede538f7cfcaa068ff847931a3fd87209415744838285c648bf4d93"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0013.parquet",
+              "sha256": "7afbfd983a9ea247936facc32c41c45eddad84282fc79495ff65b996f0d1f582"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0014.parquet",
+              "sha256": "b9f80bfef6b544fa3dce402ead6d627f26f06a58534eb8e4140cdfb5b39d7ac6"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0015.parquet",
+              "sha256": "daa1e8c3be7e737a897032d053a910ad9cd23852a4a5afd2607d917981fe45b5"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0016.parquet",
+              "sha256": "1a4ea4342a45426f62b9c14c6248e43f256357c3a21f64e375334838b195f6a4"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0017.parquet",
+              "sha256": "73ee84a176e23c8f2fe69ab4ab2d6d4293db2f26f6e843eef0d1ae4355c491f9"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0018.parquet",
+              "sha256": "de703aa06c6a29f282c449297c0f45d9dbc09c177c9daa336dec082cf810b910"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0019.parquet",
+              "sha256": "55827200719af03d30cf3466f346262b6b64f23b312345caa7acebf47b3cabed"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0020.parquet",
+              "sha256": "f19471e2fec35ac073fa490aacb9225403523511b61eb01889e4ee3456c4abbc"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0021.parquet",
+              "sha256": "227e3a324f2fa09b41d7ab94c0b5be544311f5de5ad0162b5744c0fce4000ddc"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0022.parquet",
+              "sha256": "15496f9f1766801266839742774c2c8960990819fbed1d358f1ca00af2757966"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0023.parquet",
+              "sha256": "22f19189516b432d0b3aa9b46b1f4520fd9c015d3a0af8ee676e4b2f999f450b"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0024.parquet",
+              "sha256": "ee3872c617f8a084e5b61a5ba7591f83d2e766872a250529ad643b0c33a476b3"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0025.parquet",
+              "sha256": "ce5fe80055792408407dcc4e27c87d8f8a6541461d9ec1ea51ad221f42b23816"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0026.parquet",
+              "sha256": "d1c2cbac08ef1c82d00bd16d1b5b15102a14cf0788da2f117f0852d2dc740d63"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0027.parquet",
+              "sha256": "42c6677c0c82be8e224509da1f7bb77686b687ec16bc4655b7ddbb2930b1ba5e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0028.parquet",
+              "sha256": "6baa2b3c7267b063db229b0398234388e0d6f5b93f9c937f8be5f43b66256670"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0029.parquet",
+              "sha256": "1ff74ac4ea4a23987119848136f13ce72850bbfe98099da8faebe57b02b38aca"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0030.parquet",
+              "sha256": "2f013b1da0db095f2e4a6c6b992becfd2a290925b2d99e5cbc53249b67e0e442"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0031.parquet",
+              "sha256": "8865b6ca54d1c97408f6ef31fdaf9ffd1cb017247deaad61ed80b6e03bca23da"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0032.parquet",
+              "sha256": "f125f8a20f7b72d644967b78221266b558c12a43b296622924e3e7c01f0551cf"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0033.parquet",
+              "sha256": "1aeb21a7863383edd949ae97147e5323c4df3a1bf14f54a91d88146add8a6a18"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0034.parquet",
+              "sha256": "327f231ae086345bfd7b68cf563a8246938fec0d3f3e14391a2a0477f98efc5f"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0035.parquet",
+              "sha256": "673f8116295a988472059fa80f5cf15f05594aa04210ba3941b561586ca2c4c2"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0036.parquet",
+              "sha256": "156ad14bd51af3ac07aa333cf852b042b9423b8c5f13e7b33e79f324e998b5a3"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0037.parquet",
+              "sha256": "d51378fa8be0b0700df9437487f72c3c89fef455b7e2619b00613c8059ce75f7"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0038.parquet",
+              "sha256": "18adbbff4f08883db959040b34c23e77e381907c25d8dcb59d7a08ff24d77af8"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0039.parquet",
+              "sha256": "7ee361b4e1715ce58771aa6c4e9ff0c778560c8880bcf3b2ad4796ec8d4a6295"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0040.parquet",
+              "sha256": "c9a1435bdc37a2ac7de619d2a4c0e18c1089f88d1a943848a7f0f3aca1f3c8d5"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0041.parquet",
+              "sha256": "117a280b5432c2f66d6626832329af13e990191ed705439a8e8a57e2e986949c"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0042.parquet",
+              "sha256": "5ab502afeaa6c73ad888fb7f3677a3c3b080cbfb4fff3c55e2a0447bcc78732b"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0043.parquet",
+              "sha256": "c811664128c900452095f486b9c02bfc7c68857b60b39d197c41689660dc9c62"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0044.parquet",
+              "sha256": "676e23850d54ce195652604961e28751582a703dbabe04eb08e6c8f20f6aebe2"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0045.parquet",
+              "sha256": "a7103517ab968c8043b963a5bc94d8b045821998a7af6267ffef589a69787a8e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0046.parquet",
+              "sha256": "7fb97587e3fdc393ad29477abca255ecb898f517980907bc5faa483de6916a07"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0047.parquet",
+              "sha256": "4263090c6d81d790fb337da6bef3183751acad020c4f273791a41f3ae4e40e43"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0048.parquet",
+              "sha256": "4579cc1fb92ed95e3e86b4d4a776f587af9bcd957d61a10f114254d40e8d547a"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0049.parquet",
+              "sha256": "06b9d77c7fe76c85305e00d3510182a3e3989e4052a6d8d007525a919df728bd"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0050.parquet",
+              "sha256": "fed20b4c06055127cfd2f467c1c846ebf5f7e0ac7febab1ca84cbe33d02d2df0"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0051.parquet",
+              "sha256": "86ef55b4483b6f87df5e65acc6eab75ba8377b7c689e36568313e0f762df742a"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0052.parquet",
+              "sha256": "f232add927bba24fd8b14f12b945251a325168005a36a9757167b5efb92bcb2b"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0053.parquet",
+              "sha256": "42adf44ae9d4d2828350a45fa65b86a24c13a1e6adc542a8fff6a7fbe4445c54"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0054.parquet",
+              "sha256": "9fd8793c27bb97983b27a458cb190e2f547cdd590bb2b5572a6782c389541b66"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0055.parquet",
+              "sha256": "46f09d7039bb00c83829bfa9daa76eca8f0659a3aeb0ac1e65ac405517f603f2"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0056.parquet",
+              "sha256": "78f3fc1ca31f09810b63130def4a5749669872b24a3a7bbfcbbcf8651b951418"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0057.parquet",
+              "sha256": "aad689fc3abc9539d9a8b01c277be2f572550df6aace89674c9531fc10750e35"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0058.parquet",
+              "sha256": "e830d515c03019dd3cbf782160088dd27a5d23e41690f9a28081a7bb79a7ebbb"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0059.parquet",
+              "sha256": "b13546c6d6be459fd0c768da819966b59979937f49d1e00ec35a488882a39acd"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0060.parquet",
+              "sha256": "b6a1904718f3f084fcee97f08d4a88607c65c332600ddb88ed6babfd0e1488b6"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0061.parquet",
+              "sha256": "9dcbb5db48beeaa5ae9192670b3de6c9a77a6a16eeffd8b4c18f18771436880b"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0062.parquet",
+              "sha256": "edf0eddf0810f98da333d3a9ba222a4abfb9a9ea80325c0b9d5840a9fa075e98"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0063.parquet",
+              "sha256": "5843b70f1b56598ce95bd20afac1506ba0dafc941c336bd1aee88a26a1f8817f"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0064.parquet",
+              "sha256": "21c2b99f99c446be44520dfc9f9e4a548478ad6de4a113eb9baf97001166b9f6"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0065.parquet",
+              "sha256": "981178694c2bb221acf83daf73ae5bddc677a5c9705343ac1608bdbc0827dce7"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0066.parquet",
+              "sha256": "cecbc47ee825d9cdacb6bc35222e8f4b95e0d630707a2150d8d8322281f19c49"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0067.parquet",
+              "sha256": "fae7570e51f1e4611fec830becd99d5b3236956b9cf94ab1f1150798a6df1f71"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0068.parquet",
+              "sha256": "0a1567c817089d75b698a12b239d41b58291725860e5dd79072d47e80a4c92ab"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0069.parquet",
+              "sha256": "3a76d3ff689e7f81ba4a5b7ba1eea1a2e98d622a7ccab2bc3cb7e310eb645423"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0070.parquet",
+              "sha256": "89551ed4d31e081905936d22a4d49c34415a098613f1239adc35a28e9487023c"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0071.parquet",
+              "sha256": "1cffcab66e9186a2bdf4030d3fac02ace91b07b7868a7948277dfc9228671deb"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0072.parquet",
+              "sha256": "a3ba8987ba0b5b03e8ca5d869ee6168a6dca5beae992238d2eb9b37bbc665f97"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0073.parquet",
+              "sha256": "08eaf0a836dfd196b4a8b76df8a94babcb2e85fe9a97d1d7b23dc6ee27686ade"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0074.parquet",
+              "sha256": "a07843985364bba9a3e4acc989facdbd00d0a0b5437103e7f01b39d24f4625ee"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0075.parquet",
+              "sha256": "fe5e3f19de722ea873201fdd7d0460a0644d0ce20da068db2d549c8da5cea32b"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0076.parquet",
+              "sha256": "02ec1f8e1beba11578424e42451be0c363db12a97b690f64734a5ee817769623"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0077.parquet",
+              "sha256": "c67485e9ae563adea84d149024de8f82f012b57ba27c6794e14ffa5af93a60f2"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0078.parquet",
+              "sha256": "c89e1fe4199ea45ebf0d9ee05bf8c944d24082a931da34fce10cac6f2412febb"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0079.parquet",
+              "sha256": "2737c5953b52246db2f5bdcdb8be00b3aa24782a3f02615fea8a7b54831dfc10"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0080.parquet",
+              "sha256": "84666f0332e997f2b7109426a64d89055debd85069213e20d65938e1faf89c5c"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0081.parquet",
+              "sha256": "bd29209542c88d9963401d568eb7cb3f7a008c63b57670bc9a1eddc1be7f5820"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0082.parquet",
+              "sha256": "46ae31153ee4354b59c168f5d13e6d95a265f1c68de088c0544c564991b9b4fd"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0083.parquet",
+              "sha256": "6f244f23959f39ffa94aad9144c259b1dfee40c5f4256eb4da24c0705bc8a98b"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0084.parquet",
+              "sha256": "fee246593b36af615a033487a0c72d242c5fea5aa0913ef5c6c0d4ee5c83f868"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0085.parquet",
+              "sha256": "36122008d111d6298dfd8607d9b1615e86d72a5c275270aa441cfd80ebb28399"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0086.parquet",
+              "sha256": "56bf6d022977e2d7ea9be42ca241924f4d451b1decebf8253b60f71810aa6e60"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0087.parquet",
+              "sha256": "8f881331f9d05bdd700127eddd7593eb352f8d93fdb0476a95666a9540b65b83"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0088.parquet",
+              "sha256": "bfc58eda7f83ceea141cfcf240ea98552b9d3e16870f0659f85a2fc3a7325091"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0089.parquet",
+              "sha256": "8761b3fbd02fe76e548191203df48266f47dbcfee97d38b665593b9ccb75305e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0090.parquet",
+              "sha256": "123b96fb29bcaa66797458026e3a4d7b0875f1bf0e865f819c53d05314026e99"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0091.parquet",
+              "sha256": "26933e5e6e6fe7a8d068280dcb253b5fe2379e73746a6563038ce7d9c268620a"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0092.parquet",
+              "sha256": "7f10341650cddc0eaab0fc5af5408327ed1a29f43012f13e68de221c05dedc53"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0093.parquet",
+              "sha256": "ec632b4baddf327bd355aa93b1aff3776f1f64913c5d29f59a5b3e02429211a0"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0094.parquet",
+              "sha256": "ccad6574b6da01fdcae3d9aede8858f5f7669169cd97dc1b46c9257c80f2941a"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0095.parquet",
+              "sha256": "bf515a3f1651088ae71c6a13917dc087052ea97b636da2f3ddb029680233e4ae"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0096.parquet",
+              "sha256": "048846f69d4374a1802a0dff0b4cc7f800bf22584eace5f7bb04749635833701"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0097.parquet",
+              "sha256": "6ef0803c7a4776c5e3f2038e6e37b62ad0eb4015dc1e3f205800606926783583"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0098.parquet",
+              "sha256": "bbeddde3c2159b497a8b67b04cba891b66a9fcf9883cade896c6486d9ceb4205"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0099.parquet",
+              "sha256": "4985c0b1106fadbaccb52dd1aee7788dd11cadcf92840151857c1acb968b5b4e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0100.parquet",
+              "sha256": "32e15b95f62b19eaea3eb288930d3719197a3405e2609c9e4f40b0198a4f58ae"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0101.parquet",
+              "sha256": "3887941110a1dab93379cab4df817b75bc4bba5bfc6c113033997dac91a801a7"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0102.parquet",
+              "sha256": "a7c04fd567d529b9d7cdd2039172aba7de60b360f4ee13159ee3a1ff4ce52742"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0103.parquet",
+              "sha256": "86b34d970c42a35da63cd203e72c15ccee13bbdd2aba32f26e0bb17282a25681"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0104.parquet",
+              "sha256": "1d0a071d45180a7cc09830d27dd2fc6010231ab48f87821183212e9197ab6351"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0105.parquet",
+              "sha256": "7437a5f216d2b33aea505f971862ffad2f5399289b6cbc76c8f69f6eaf94902d"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0106.parquet",
+              "sha256": "c17d2b66e08b454172c4cc61e177bc925b348cc269d1b9289a3cc28d29cf7656"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0107.parquet",
+              "sha256": "24d450dbd99e41f1ea347604caedd7f57bf37c33df1d2bfdf4c8f6f867dc27da"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0108.parquet",
+              "sha256": "59a39d53de10c6874e6b0ee7a93774aa6c5427709140236760b12597afda9bbb"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0109.parquet",
+              "sha256": "7b2e8e4fc06eac82536c56c88de1f1a1178fd4af4cf4d0cb830b1a6bd4a7c67d"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0110.parquet",
+              "sha256": "c21943f6c78c8814feddd7d2c1e9bda3126b5e88683d6e0273f907351e6c4e82"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0111.parquet",
+              "sha256": "b3263174d7b00380a47ef243cf340201b3875b500e10459622b86ce382cc1731"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0112.parquet",
+              "sha256": "8533e8bc56e9c7d2bf974a26eebd822400017894ca97740b71c1cbe4d6e7ac3b"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0113.parquet",
+              "sha256": "63f433508be49599c762577e1f480d32e010b02ec8c77a312bda233eb7988c18"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0114.parquet",
+              "sha256": "0f3ed50ac6c6275cc9783445f351aa9b993941be41498e4a8d4347d25d7ad951"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0115.parquet",
+              "sha256": "1b88b47d5ac3697c149fd9c5266def7d5dace6d347c789bdc66935d0f0fbd944"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0116.parquet",
+              "sha256": "896c5782ee4c56dca829b7b58dde90322bb9608bf2e3e03f1714b881f06cc16d"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0117.parquet",
+              "sha256": "183c77ee388af846d4495922e092a5722ce9149ad235a80bc1add7ae4333643a"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0118.parquet",
+              "sha256": "d1ded855bef3b1917aecc902301e871038e8b8dd1d11d015c8ac1fa8e4ca262f"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0119.parquet",
+              "sha256": "2426178361bfa965e29efd06cd485c101ae1157f10a3720bac1bc998a0179bc3"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0120.parquet",
+              "sha256": "d901ea30a3283567904b52a16c19259d910d0a18ac639f276d3b7e659e215b8a"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0121.parquet",
+              "sha256": "6c4c5ec95e85a9027b5544d44adf2eeea03fbbdcf676d6664a2a8d496624252c"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0122.parquet",
+              "sha256": "8d18638d5f8a643b0d4f76dd66792c6e47981923eee5e1fdefb3ea0b3589cd30"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0123.parquet",
+              "sha256": "7fb3aaccfec055af9b75bf0db442cb0fd104cff9ad06ba97016f8db57bea9929"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0124.parquet",
+              "sha256": "30b5b1a973128254cbb5db5e15b392dbe2bf8327cf9b00a3848e2f58a05eef18"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0125.parquet",
+              "sha256": "48b3fd8721f3fa7be3b49d85ba11946cbf5ee351a031612c38898b2b0e3e3b4c"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0126.parquet",
+              "sha256": "91b513881f089ffd06484cb5ebbe2eb04f8ac3a0d05cbc17f9aa43e222449392"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0127.parquet",
+              "sha256": "c993ad59367433cdf4cb81a99a2a3db0eaedfde8ee37a7b02cf57095099efff8"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0128.parquet",
+              "sha256": "0023c555dd2bec200a28e9d08b354326f65ed5062181b95547fd28e5ea690e7e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0129.parquet",
+              "sha256": "04e7fac75d055dea4495c3ca5249cc80a0eee1669690a1e861b9eff72fef839f"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0130.parquet",
+              "sha256": "671db195195d10828276f1ae8e11cd8941caae7aa7e73250965b0420fea23932"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0131.parquet",
+              "sha256": "c4ce39f9207994dc0fea1fd2d8133f53f80ac705401434dd1f5a5d6c9cdd6dcc"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0132.parquet",
+              "sha256": "35356182d08819eee5c615c2eb64d982b8bcf893d6b3b3b984ecf4aaaf7e0adf"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0133.parquet",
+              "sha256": "b00e8aecd8ac7e94834462a6f0b58c736f3eb6408a0c0e24e33de777daf3220f"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0134.parquet",
+              "sha256": "a57d692c023205093556e0dea72a4745baa8223ab0a771ce9c6b87b4209c4bfe"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0135.parquet",
+              "sha256": "8456e84656b18734240b5923b666fe08e2a04b838707ef178bf1c82d1e4eeefe"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0136.parquet",
+              "sha256": "d6b07daa7c7e2d7160fc370f74f2f699ae5c87bde2919988018126b5a2a48e03"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0137.parquet",
+              "sha256": "8179448d1d3d7026767b72cb77193ced5727db40740571283bda326435745a97"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0138.parquet",
+              "sha256": "9b81cdc6c67b1bb97b80bf9083ad4b637be6126a4f7bdbb4dd059c272223a9cf"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0139.parquet",
+              "sha256": "b98b701d1631feeed026ba31a76df541362bbe1169e96f6af3105d20f0b77a1e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0140.parquet",
+              "sha256": "ed992249c2bc5e4a064f72a2931aed816a6b1b863d0d5e255e2f0b9c0a807baf"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0141.parquet",
+              "sha256": "28dd31a3c2a479cc05a3db6edbc1c14bb70b14c07d5e7892fb74f1f582cf418d"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0142.parquet",
+              "sha256": "b8bef5c9a944a14b96b2fef1b73d9c3de1133591dc604a15098d6a07ea6d4264"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0143.parquet",
+              "sha256": "4ccfdfb0ca274091a97efd7370efca371bdeab0d47bb3af3b862235f9e632260"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0144.parquet",
+              "sha256": "2eb5d89e53d8bc61d41e6aff8c25d16771237d273947b8cf28f18db152a01bd9"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0145.parquet",
+              "sha256": "52d751d537b6f686597637d2f8c373ec069b618ef2c3b61525988d240a6a2a53"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0146.parquet",
+              "sha256": "9f23c4e5e1f7c1f15bb9c05394e4c9a30d1a731014ad3140b0d456c2cf80dc94"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0147.parquet",
+              "sha256": "1f46591b68e1e269318ea243e1149eaa87b45bc4f3f1a31b47a7d484fff8e4d8"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0148.parquet",
+              "sha256": "685529aec642577affd339484e5d3f2d7f43bea17c386ae5e7a5931ed0572a0c"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0149.parquet",
+              "sha256": "3d23f48d694265bace99076c7d4b3e4553baaaea1b05e3678e2f3f315b571788"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0150.parquet",
+              "sha256": "a5e7975dc2070f3a8269434925b1e037d1eaf26e45b658e8f66489d636655283"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0151.parquet",
+              "sha256": "8d8d322a50596dfe883116d9f7cce7bb3da8f062f6cd359c1a44b6127bce2be6"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0152.parquet",
+              "sha256": "09d02c4de62933253df8af088d0c9b77033e088f6cbfee5ab58e0ec02b810afc"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0153.parquet",
+              "sha256": "baf463acb0f39da39e1ee4877a8825491773654a03ec389b7ca07248bfe9bbd5"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0154.parquet",
+              "sha256": "8bcc6ec762b1c41b7cf41d7c53bfeee285a4c034405f5aa1174ca141b9d2c22e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0155.parquet",
+              "sha256": "b6cf0d5e5644451d06214d477946aba44a678755a9badb9e82422e96651907a6"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0156.parquet",
+              "sha256": "aa62995abe8da4f713e78e278d33ffb7b8e7cddde8e42edd68c319fe70874025"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0157.parquet",
+              "sha256": "8336355ba7f52716e3d4f4e25090dcf990373f48fc080470b2976ee235bc7e30"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0158.parquet",
+              "sha256": "d4a30e87b71899ef53cc021e4512ad260639a19940ab1281c435717b9f781695"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0159.parquet",
+              "sha256": "caffc666b58536e93e1adbf2dba88b11d24f4ec907824cd4cc4679ea5c5c0c75"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0160.parquet",
+              "sha256": "d058e44279bfe55845f0c326012e86a275775a6c63b9df352ce30cdd0d1eba0b"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0161.parquet",
+              "sha256": "4b15a2b2f232dda1b67d063aa84459e472bb2e1bada6ca6b0300fe6e550d6e32"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0162.parquet",
+              "sha256": "8ab8bd4898a982a1132a272f391f5a4aeb8ba8eead72342f5671031f7871c254"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0163.parquet",
+              "sha256": "a512249405c51b0bdf62f8796ddfc64a59c92aa33739d82306f109d459341aa7"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0164.parquet",
+              "sha256": "0a9e25eb113fc3b35d9c430abd2dd3deca44efadb053e402c596423c7545626e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0165.parquet",
+              "sha256": "3e84a5cd975d0e6b61bd9cdab24a3079833db07ce71ad61fd8890699dcbcec6e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0166.parquet",
+              "sha256": "95649af6004a6c91db83580530f49be9dc2076fe7156ff01b421b607b8f37cdd"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0167.parquet",
+              "sha256": "81f5055dd2b1a7354719304fcf2488e87da048819a0ec2446c33ec24f0b27e63"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0168.parquet",
+              "sha256": "107d0e8d43d75830b9a86b740ebed345f35a120656e7ffce611cff59c66200a8"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0169.parquet",
+              "sha256": "ca26df37f54fe88decbb1e16bceec63195c8fce3f148e2dd991b660915e166e4"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0170.parquet",
+              "sha256": "2b3998bbd33c1e1987ea282e062d11dc434c82a37c72eb19ff9c6d28cd61b517"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0171.parquet",
+              "sha256": "ea010ca558cc88b1e686a4acf2e5b0ab01dbd696fddc964eefb3cc7bd688c6a7"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0172.parquet",
+              "sha256": "c9bcd7fc30235884c252b64b2400c577af9eb2daf48ab4badeb9624be0369b63"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0173.parquet",
+              "sha256": "bdf63929c5d6938b103fedda09afb2e85d4bf8573071e061b633b3d6f6b694c6"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0174.parquet",
+              "sha256": "38ddee7d12ebde15fb4309ea84b113622f8cd34bf9fc2013d1efe56c88b84f3f"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0175.parquet",
+              "sha256": "05afcf8925c2a7454875e07e9dea982fefe0abc46b725883d3fedb38ab532f6e"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0176.parquet",
+              "sha256": "7e9bb6050bf43095ec52588319d93b2fde4bed882b11e6dde8e6d7a6aa0de2ba"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0177.parquet",
+              "sha256": "6ffab3d039e3d3db3a7dc0b652320e76526ad3ab6d6642c0c757bdd075734aee"
+            },
+            {
+              "path": "<data_root>/gold/analysis=resonance/dataset=run2012bc_doublemuparked/dimuon/Run2012BC_DoubleMuParked_Muons_part_0178.parquet",
+              "sha256": "4fdb5d3bb493970d4c2bed8cf2406af425d64f8b4081916fac914478601926c6"
+            }
+          ]
+        },
+        "peak_rss_bytes": 226529280
+      },
+      "name": "figures",
+      "rows_out": 24,
+      "rows_per_s": 1.8983461726790256,
+      "started_at": "2026-11-10T00:01:01.763885+00:00",
+      "status": "succeeded"
+    }
+  ],
+  "started_at": "2026-11-10T00:01:01.653408+00:00",
+  "state": "succeeded",
+  "summary": "ColliderLake run summary\nstage    | status  | duration | rows_out | rows_per_second\n---------|---------|----------|----------|----------------\nfigures  | SUCCESS | 12.6s    | 24 | 1.91\n\ndataset_id: run2012bc_doublemuparked\noverall_status: SUCCESS\ntotal_wall_time: 12.6s\nworkers: auto\nstage_speedup: measured by scripts/bench_compare.py against a prior run summary\npipeline_speedup: measured by scripts/bench_compare.py against a prior run summary\nanalysis: resonance\nselection_id: 4d93aea9\nfit_config_id: 4c5247e8\nresults: <data_root>/results\ndq_report: <data_root>/results/dq_report.json\n"
+}

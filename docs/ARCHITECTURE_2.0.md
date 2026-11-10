@@ -3,7 +3,7 @@
 **Status:** Approved design, implementation in progress
 **Supersedes:** ColliderLake 1.0 (single-dataset exploration pipeline)
 **First consumer:** Project RESONANCE (dimuon resonance ladder, arXiv `physics.data-an`)
-**Second consumer (planned):** RECKONING anomaly-detection layer (paper #2)
+**Second consumer (planned):** the RECKONING anomaly-detection search
 
 ---
 
@@ -27,7 +27,7 @@ and one-command reproducibility.
    maximum-likelihood fits compared against PDG reference values.
 3. Certified-data guarantees: golden-JSON lumi filtering as a first-class transform.
 4. Full-pipeline reproducibility: `git clone` → one command → publication figures.
-5. A stable gold-layer contract that paper #2 (anomaly detection) can build on
+5. A stable gold-layer contract that the RECKONING search (anomaly detection) can build on
    without touching ingestion.
 
 ### Non-goals
@@ -70,7 +70,7 @@ and one-command reproducibility.
                                     ↓
         ┌───────────────────┐              ┌────────────────────────┐
         │ DuckDB access     │              │ RECKONING interface      │
-        │ views over gold   │              │ (paper #2 contract)    │
+        │ views over gold   │              │ (RECKONING search contract)    │
         └───────────────────┘              └────────────────────────┘
 ```
 
@@ -218,8 +218,7 @@ fits:
   z:       {window: [70, 110],   signal: breit_wigner_conv_gaussian, background: exponential,
             pdg_mass: 91.1876}
 caveats:
-  trigger_artifact_30gev: "Known trigger turn-on structure near 30 GeV in 2012
-    parked data — excluded from all fit windows and documented in paper."
+  trigger_artifact_30gev: "attributed to parked-dataset trigger thresholds; not independently investigated here."
 ```
 
 ---
@@ -343,8 +342,8 @@ ColliderLake/
 
 1. **Υ(1S/2S/3S) partially merged at NanoAOD resolution** → triple-Gaussian with
    PDG-fixed mass splittings; report 1S cleanly, 2S/3S as constrained.
-2. **30 GeV trigger artifact (2012)** → excluded from fit windows; one honest
-   paragraph in the paper. Reviewers know it; hiding it is the only failure mode.
+2. **30 GeV structure (2012):** attributed to parked-dataset trigger thresholds; not independently investigated here.
+
 3. **arXiv endorsement latency** → outreach starts at first-ladder-plot, not at
    submission (Phase 3, not Phase 4).
 4. **PySpark overhead at 7.5 GB** → acceptable; DuckDB fallback exists for every

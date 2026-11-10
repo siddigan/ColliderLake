@@ -26,4 +26,4 @@ fits:
     background: exponential
     pdg_mass: 91.1876
 caveats:
-  trigger_artifact_30gev: "Known trigger turn-on structure near 30 GeV in 2012 parked data; excluded from fit windows."
+  trigger_artifact_30gev: "Known trigger turn-on structure near 30 GeV in 2012 parked data; excluded from fit windows." # attributed to parked-dataset trigger thresholds; not independently investigated here

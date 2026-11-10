@@ -2,6 +2,8 @@
 
 Evidence snapshot: 2026-10-28. Result files: `fits_core_window.json` and `fits_full_window.json` at repository root. Their common selection ID is `4d93aea9`; core fit ID is `4c5247e8`; full-window fit ID is `2c27a652`. Fit values below are copied from those JSON files. Relative shifts are calculated as `(mass_fit - pdg_mass) / pdg_mass * 100`.
 
+Sanitized copies of cited run records are committed under `docs/results/runs/`.
+
 ## 1. Fit results
 
 | Resonance | Mass ± stat. unc. (GeV) | PDG (GeV) | Relative shift | Signal yield | χ²/ndf | gof_flag | status | Window (GeV) | selection_id | fit_config_id | Source |
@@ -22,6 +24,8 @@ Widths and background yields are present in each cited JSON file and are omitted
 - Silver certified fraction: 1.0; eta drop fraction: 0.008019932380431782 (`data/results/dq_report.json`).
 - Observed selected-muon maximum: UNRESOLVED — `data/results/dq_report.json` contains only configured `max_muons_per_event: 128`, not the observed maximum or `events_above_half_max` metric.
 - Gold pair rows: 83,057,658; pairs/event max 612; p99 10.0; p99.9 24.0; distinct event keys 42,812,309. Both duplicate full-key and duplicate canonical-pair counts are 0 (`docs/audits/CL2.0.7_PRE_GOLD_FIT_AUDIT.md`, §A).
+
+attributed to parked-dataset trigger thresholds; not independently investigated here.
 
 ## 3. Performance baseline
 

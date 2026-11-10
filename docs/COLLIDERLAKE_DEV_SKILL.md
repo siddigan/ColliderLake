@@ -95,8 +95,7 @@ cross-check in tests, never in the pipeline (it biases the J/psi region).
   `mass > 2*m_mu`.
 
 ### Known gotchas (do not "fix" these as bugs)
-- **~30 GeV structure in the 2012 spectrum is a trigger turn-on artifact,
-  not a resonance.** Exclude from fit windows; never fit or report it as a peak.
+- **30 GeV structure in the 2012 spectrum:** attributed to parked-dataset trigger thresholds; not independently investigated here. It is not treated as a resonance or included in fit windows.
 - **Upsilon 1S/2S/3S partially merge at NanoAOD resolution.** Fit with a
   triple-Gaussian whose mass SPLITTINGS are fixed to PDG differences; float a
   common offset and shared width scale. Report 1S; 2S/3S are constrained.

@@ -3,7 +3,7 @@ ladder:
   mass_max_gev: 300.0
   log_bins: 400
   trigger_artifact_mass_gev: 30.0
-  trigger_artifact_label: trigger artifact
+  trigger_artifact_label: trigger artifact # attributed to parked-dataset trigger thresholds; not independently investigated here
 panels:
   pull_reference_sigma: 3.0
 style:

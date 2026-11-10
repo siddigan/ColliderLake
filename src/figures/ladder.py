@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import tempfile
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 from typing import Any
 
@@ -255,7 +256,7 @@ def _render_ladder(
         ax.axvline(mass, color="0.35", linestyle=(0, (2, 2)), linewidth=0.75)
         y = ymax * (0.56 if index % 2 == 0 else 0.30)
         ax.annotate(
-            f"{row['resonance']}  {mass:.5g} GeV",
+            f"{_display_resonance(row['resonance'])}  {mass:.5g} GeV",
             (mass, y),
             xytext=(4, 2),
             textcoords="offset points",
@@ -283,6 +284,14 @@ def _render_ladder(
         fontsize=7,
         color="0.25",
     )
+    if any(str(row["resonance"]) == "upsilon" for row in fit_rows):
+        fig.text(
+            0.01,
+            0.022,
+            "\u03a5(1S): 2S/3S constrained at PDG splittings in a shared fit",
+            fontsize=6.5,
+            color="0.25",
+        )
     return _save_figure(fig, output_dir / "dimuon_ladder")
 
 
@@ -329,7 +338,7 @@ def _render_panel(
     ax.plot(centers, background, color="0.35", linestyle="--", linewidth=1.0, label="Background")
     ax.set_ylabel("Pairs / bin")
     ax.legend(frameon=False, fontsize=8)
-    ax.set_title(str(row["resonance"]))
+    ax.set_title(_display_resonance(row["resonance"]))
     chi2_ndf = _chi2_ndf(row)
     delta = float(row["mass_fit"]) - float(row["pdg_mass"])
     annotation = (
@@ -338,6 +347,8 @@ def _render_panel(
         f"χ²/ndf = {chi2_ndf:.4g}; gof = {row['gof_flag']}; status = {row['status']}\n"
         f"selection_id = {row['selection_id']}\nfit_config_id = {row['fit_config_id']}"
     )
+    if str(row["resonance"]) == "upsilon":
+        annotation += "\nΥ(1S): 2S/3S constrained at PDG splittings in a shared fit"
     ax.text(
         0.02,
         0.97,
@@ -424,7 +435,10 @@ def _pdg_markdown(rows: list[dict[str, Any]]) -> str:
     lines = ["| " + " | ".join(headers) + " |", "|" + "|".join(["---"] * len(headers)) + "|"]
     for row in rows:
         lines.append("| " + " | ".join(_table_values(row)) + " |")
-    return "\n".join(lines) + "\n"
+    text = "\n".join(lines) + "\n"
+    if any(str(row["resonance"]) == "upsilon" for row in rows):
+        text += "\nΥ(1S): 2S/3S constrained at PDG splittings in a shared fit.\n"
+    return text
 
 
 def _pdg_latex(rows: list[dict[str, Any]]) -> str:
@@ -455,8 +469,13 @@ def _pdg_latex(rows: list[dict[str, Any]]) -> str:
         values = [
             value.replace("_", r"\_").replace("\u00b1", r"$\pm$") for value in _table_values(row)
         ]
+        if values[0] == "Υ(1S)":
+            values[0] = r"$\Upsilon(1S)$"
         lines.append(" & ".join(values) + " " + "\\" * 2)
-    lines.extend([r"\bottomrule", r"\end{tabular}", r"\end{document}"])
+    lines.extend([r"\bottomrule", r"\end{tabular}"])
+    if any(str(row["resonance"]) == "upsilon" for row in rows):
+        lines.append(r"\par\smallskip\noindent\footnotesize $\Upsilon(1S)$: 2S/3S constrained at PDG splittings in a shared fit.")
+    lines.append(r"\end{document}")
     return "\n".join(lines) + "\n"
 
 
@@ -466,9 +485,9 @@ def _table_values(row: dict[str, Any]) -> list[str]:
     pdg = float(row["pdg_mass"])
     shift_percent = 100.0 * (mass - pdg) / pdg
     return [
-        str(row["resonance"]),
+        _display_resonance(row["resonance"]),
         f"[{float(low)!r}, {float(high)!r}]",
-        f"{mass!r} \u00b1 {float(row['mass_stat_unc'])!r}",
+        _rounded_mass_and_uncertainty(mass, float(row["mass_stat_unc"])),
         repr(pdg),
         repr(shift_percent),
         repr(float(row["signal_yield"])),
@@ -478,6 +497,23 @@ def _table_values(row: dict[str, Any]) -> list[str]:
         str(row["selection_id"]),
         str(row["fit_config_id"]),
     ]
+
+
+def _display_resonance(resonance: Any) -> str:
+    return "Υ(1S)" if str(resonance) == "upsilon" else str(resonance)
+
+
+def _rounded_mass_and_uncertainty(mass: float, uncertainty: float) -> str:
+    """Round the uncertainty to two significant figures and mass to its place."""
+    if not (uncertainty > 0 and np.isfinite(uncertainty)):
+        raise ValueError("statistical uncertainty must be finite and positive for table display")
+    unc = Decimal(str(uncertainty))
+    mass_value = Decimal(str(mass))
+    quantum = Decimal(1).scaleb(unc.adjusted() - 1)
+    rounded_unc = unc.quantize(quantum, rounding=ROUND_HALF_UP)
+    rounded_mass = mass_value.quantize(quantum, rounding=ROUND_HALF_UP)
+    decimals = max(0, -quantum.as_tuple().exponent)
+    return f"{rounded_mass:.{decimals}f} ± {rounded_unc:.{decimals}f}"
 
 
 def _chi2_ndf(row: dict[str, Any]) -> float:

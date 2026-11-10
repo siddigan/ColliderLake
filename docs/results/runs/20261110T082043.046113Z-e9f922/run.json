@@ -1,0 +1,1599 @@
+{
+  "abort_reason": null,
+  "backfilled": false,
+  "context": {
+    "colliderlake_inputs": {
+      "analysis": "resonance",
+      "data_root": "<data_root>",
+      "dataset_id": "run2012bc_doublemuparked",
+      "duckdb_memory_limit": "2GB",
+      "duckdb_threads": 2,
+      "engine": "vectorized",
+      "figures_config_sha256": "649ef9ea415ed0da270ae613551544b08dded08c0a56b863028d5d87e72b7ecd",
+      "fit_config_id": "4c5247e8",
+      "fit_window_jpsi": [
+        2.8,
+        3.4
+      ],
+      "fit_window_psi2s": [
+        3.4,
+        3.95
+      ],
+      "fit_window_upsilon": [
+        8.5,
+        11.5
+      ],
+      "fit_window_z": [
+        86.0,
+        96.0
+      ],
+      "fixture_size": "configured silver input",
+      "gold_config_sha256": "914c3b7730ecfdf4a151c2bf83e64ff2f427b1b04069b467a421af1b69dc4b22",
+      "gold_max_parts": "all",
+      "io_config_sha256": "a097898a393d65428e245bef88782466db1b332292217559a3a11bc112937a5c",
+      "selection_id": "4d93aea9",
+      "workers": "auto (up to 15; capped by available Parquet parts)",
+      "workers_requested": "auto"
+    }
+  },
+  "context_hashes": {
+    "colliderlake_inputs": "a62c15efe19f1adecc13b45a3e3b8b084d5406c565beb196e3619111cafb502c"
+  },
+  "context_sha256": "0f0c3654537a8b706d337d3db1726523818f4a63f030a17cb941be89f33fd9b3",
+  "ended_at": "2026-11-10T08:39:18.437699+00:00",
+  "env": {
+    "cpu_count": 16,
+    "free_disk_gb": 108.91844177246094,
+    "platform": "Windows-10-10.0.26300-SP0",
+    "python": "3.11.15",
+    "total_ram_gb": 31.398487091064453,
+    "vars": {}
+  },
+  "exit_code": null,
+  "failed_stage": null,
+  "failure_scope": null,
+  "git": {
+    "branch": "main",
+    "commit": "a29342558c4125e30fa8ec413760f0f4d3f8efda",
+    "dirty": false,
+    "dirty_files": []
+  },
+  "name": "colliderlake:run2012bc_doublemuparked:all",
+  "preflight": {
+    "analysis": "resonance",
+    "commit": "a29342558c4125e30fa8ec413760f0f4d3f8efda",
+    "data_root": "<data_root>",
+    "dirty": false,
+    "dirty_files": [],
+    "engine": "vectorized",
+    "fit_config_id": "4c5247e8",
+    "fit_windows": {
+      "jpsi": [
+        2.8,
+        3.4
+      ],
+      "psi2s": [
+        3.4,
+        3.95
+      ],
+      "upsilon": [
+        8.5,
+        11.5
+      ],
+      "z": [
+        86.0,
+        96.0
+      ]
+    },
+    "run_id": "20261110T082043.046113Z-e9f922",
+    "selection_id": "4d93aea9",
+    "workers": "auto (up to 15; capped by available Parquet parts)",
+    "workers_requested": "auto"
+  },
+  "run_id": "20261110T082043.046113Z-e9f922",
+  "stages": [
+    {
+      "duration_s": 1.2737961000020732,
+      "ended_at": "2026-11-10T08:20:44.426499+00:00",
+      "metrics": {
+        "batches": 0,
+        "peak_rss_bytes": 103063552
+      },
+      "name": "acquire",
+      "rows_out": 1,
+      "rows_per_s": 0.7850550021297541,
+      "started_at": "2026-11-10T08:20:43.152334+00:00",
+      "status": "succeeded"
+    },
+    {
+      "duration_s": 885.9873124000005,
+      "ended_at": "2026-11-10T08:35:30.417152+00:00",
+      "metrics": {
+        "batches": 179,
+        "peak_rss_bytes": 3742658560
+      },
+      "name": "bronze",
+      "rows_out": 210862869,
+      "rows_per_s": 237997.61695097596,
+      "started_at": "2026-11-10T08:20:44.429507+00:00",
+      "status": "succeeded"
+    },
+    {
+      "duration_s": 82.28916520000348,
+      "ended_at": "2026-11-10T08:36:52.709119+00:00",
+      "metrics": {
+        "batches": 179,
+        "peak_rss_bytes": 16338780160
+      },
+      "name": "silver",
+      "rows_out": 209665313,
+      "rows_per_s": 2547909.101889773,
+      "started_at": "2026-11-10T08:35:30.420146+00:00",
+      "status": "succeeded"
+    },
+    {
+      "duration_s": 141.36220859999594,
+      "ended_at": "2026-11-10T08:39:14.074065+00:00",
+      "metrics": {
+        "batches": 179,
+        "engine": "vectorized",
+        "parts": [
+          {
+            "output_bytes": 27947381,
+            "pairs_per_second": 43045.99725973453,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0000.parquet",
+            "peak_rss_bytes": 1229271040,
+            "query_seconds": 10.218000000000757,
+            "rows": 439844
+          },
+          {
+            "output_bytes": 28056280,
+            "pairs_per_second": 39741.752808988764,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0001.parquet",
+            "peak_rss_bytes": 1222959104,
+            "query_seconds": 11.125,
+            "rows": 442127
+          },
+          {
+            "output_bytes": 28068400,
+            "pairs_per_second": 40421.43704920532,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0002.parquet",
+            "peak_rss_bytes": 1249460224,
+            "query_seconds": 10.953000000001339,
+            "rows": 442736
+          },
+          {
+            "output_bytes": 27976797,
+            "pairs_per_second": 39290.4261009066,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0003.parquet",
+            "peak_rss_bytes": 1231839232,
+            "query_seconds": 11.218000000000757,
+            "rows": 440760
+          },
+          {
+            "output_bytes": 28062086,
+            "pairs_per_second": 42985.89631357697,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0004.parquet",
+            "peak_rss_bytes": 1229778944,
+            "query_seconds": 10.281000000002678,
+            "rows": 441938
+          },
+          {
+            "output_bytes": 27983340,
+            "pairs_per_second": 41097.26103969946,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0005.parquet",
+            "peak_rss_bytes": 1228587008,
+            "query_seconds": 10.73399999999674,
+            "rows": 441138
+          },
+          {
+            "output_bytes": 28072829,
+            "pairs_per_second": 40873.568526038536,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0006.parquet",
+            "peak_rss_bytes": 1234448384,
+            "query_seconds": 10.828000000001339,
+            "rows": 442579
+          },
+          {
+            "output_bytes": 27969376,
+            "pairs_per_second": 43548.83950617284,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0007.parquet",
+            "peak_rss_bytes": 1224540160,
+            "query_seconds": 10.125,
+            "rows": 440932
+          },
+          {
+            "output_bytes": 27958737,
+            "pairs_per_second": 40042.454545454544,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0008.parquet",
+            "peak_rss_bytes": 1238441984,
+            "query_seconds": 11.0,
+            "rows": 440467
+          },
+          {
+            "output_bytes": 28068502,
+            "pairs_per_second": 41436.135320018104,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0009.parquet",
+            "peak_rss_bytes": 1227481088,
+            "query_seconds": 10.671000000002095,
+            "rows": 442165
+          },
+          {
+            "output_bytes": 27825532,
+            "pairs_per_second": 45356.77299087392,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0010.parquet",
+            "peak_rss_bytes": 1212088320,
+            "query_seconds": 9.656000000002678,
+            "rows": 437965
+          },
+          {
+            "output_bytes": 27864353,
+            "pairs_per_second": 40335.724137931036,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0011.parquet",
+            "peak_rss_bytes": 1222533120,
+            "query_seconds": 10.875,
+            "rows": 438651
+          },
+          {
+            "output_bytes": 28005191,
+            "pairs_per_second": 40091.04938270419,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0012.parquet",
+            "peak_rss_bytes": 1225789440,
+            "query_seconds": 11.01600000000326,
+            "rows": 441643
+          },
+          {
+            "output_bytes": 27967098,
+            "pairs_per_second": 39857.06526659305,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0013.parquet",
+            "peak_rss_bytes": 1229045760,
+            "query_seconds": 11.046999999998661,
+            "rows": 440301
+          },
+          {
+            "output_bytes": 27974847,
+            "pairs_per_second": 42755.074293489095,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0014.parquet",
+            "peak_rss_bytes": 1223385088,
+            "query_seconds": 10.296999999998661,
+            "rows": 440249
+          },
+          {
+            "output_bytes": 27961796,
+            "pairs_per_second": 49145.74041034376,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0015.parquet",
+            "peak_rss_bytes": 1249554432,
+            "query_seconds": 8.968000000000757,
+            "rows": 440739
+          },
+          {
+            "output_bytes": 28032866,
+            "pairs_per_second": 49228.85129120219,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0016.parquet",
+            "peak_rss_bytes": 1261481984,
+            "query_seconds": 8.98399999999674,
+            "rows": 442272
+          },
+          {
+            "output_bytes": 28131052,
+            "pairs_per_second": 48069.855732701915,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0017.parquet",
+            "peak_rss_bytes": 1269006336,
+            "query_seconds": 9.219000000004598,
+            "rows": 443156
+          },
+          {
+            "output_bytes": 28063774,
+            "pairs_per_second": 50299.64760710485,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0018.parquet",
+            "peak_rss_bytes": 1268551680,
+            "query_seconds": 8.797000000005937,
+            "rows": 442486
+          },
+          {
+            "output_bytes": 28087108,
+            "pairs_per_second": 46187.806660413065,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0019.parquet",
+            "peak_rss_bytes": 1274044416,
+            "query_seconds": 9.578999999997905,
+            "rows": 442433
+          },
+          {
+            "output_bytes": 28178428,
+            "pairs_per_second": 48695.547533114055,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0020.parquet",
+            "peak_rss_bytes": 1264599040,
+            "query_seconds": 9.140999999995984,
+            "rows": 445126
+          },
+          {
+            "output_bytes": 27911918,
+            "pairs_per_second": 45623.171870122525,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0021.parquet",
+            "peak_rss_bytes": 1259065344,
+            "query_seconds": 9.64100000000326,
+            "rows": 439853
+          },
+          {
+            "output_bytes": 27951064,
+            "pairs_per_second": 46138.26332880086,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0022.parquet",
+            "peak_rss_bytes": 1259610112,
+            "query_seconds": 9.546999999998661,
+            "rows": 440482
+          },
+          {
+            "output_bytes": 28029816,
+            "pairs_per_second": 50634.59112280848,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0023.parquet",
+            "peak_rss_bytes": 1274396672,
+            "query_seconds": 8.719000000004598,
+            "rows": 441483
+          },
+          {
+            "output_bytes": 27951495,
+            "pairs_per_second": 48292.16438356164,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0024.parquet",
+            "peak_rss_bytes": 1262800896,
+            "query_seconds": 9.125,
+            "rows": 440666
+          },
+          {
+            "output_bytes": 27949852,
+            "pairs_per_second": 45410.18241780266,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0025.parquet",
+            "peak_rss_bytes": 1264635904,
+            "query_seconds": 9.703000000001339,
+            "rows": 440615
+          },
+          {
+            "output_bytes": 28059300,
+            "pairs_per_second": 46559.05263157895,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0026.parquet",
+            "peak_rss_bytes": 1254592512,
+            "query_seconds": 9.5,
+            "rows": 442311
+          },
+          {
+            "output_bytes": 28005578,
+            "pairs_per_second": 45683.900320536064,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0027.parquet",
+            "peak_rss_bytes": 1266155520,
+            "query_seconds": 9.671000000002095,
+            "rows": 441809
+          },
+          {
+            "output_bytes": 27904109,
+            "pairs_per_second": 51560.54022313917,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0028.parquet",
+            "peak_rss_bytes": 1271808000,
+            "query_seconds": 8.514999999999418,
+            "rows": 439038
+          },
+          {
+            "output_bytes": 27898353,
+            "pairs_per_second": 49229.32078010154,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0029.parquet",
+            "peak_rss_bytes": 1283043328,
+            "query_seconds": 8.921999999998661,
+            "rows": 439224
+          },
+          {
+            "output_bytes": 27888638,
+            "pairs_per_second": 57898.65399840624,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0030.parquet",
+            "peak_rss_bytes": 1254260736,
+            "query_seconds": 7.578000000001339,
+            "rows": 438756
+          },
+          {
+            "output_bytes": 27915215,
+            "pairs_per_second": 54880.61377243277,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0031.parquet",
+            "peak_rss_bytes": 1268551680,
+            "query_seconds": 8.01600000000326,
+            "rows": 439923
+          },
+          {
+            "output_bytes": 27876476,
+            "pairs_per_second": 45355.90421138655,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0032.parquet",
+            "peak_rss_bytes": 1269374976,
+            "query_seconds": 9.68800000000192,
+            "rows": 439408
+          },
+          {
+            "output_bytes": 27945878,
+            "pairs_per_second": 53411.10031573785,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0033.parquet",
+            "peak_rss_bytes": 1269006336,
+            "query_seconds": 8.234000000004016,
+            "rows": 439787
+          },
+          {
+            "output_bytes": 27854224,
+            "pairs_per_second": 47959.95623632691,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0034.parquet",
+            "peak_rss_bytes": 1274396672,
+            "query_seconds": 9.139999999999418,
+            "rows": 438354
+          },
+          {
+            "output_bytes": 27964748,
+            "pairs_per_second": 49023.14969393116,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0035.parquet",
+            "peak_rss_bytes": 1276551168,
+            "query_seconds": 8.985000000000582,
+            "rows": 440473
+          },
+          {
+            "output_bytes": 27977887,
+            "pairs_per_second": 45086.69870155191,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0036.parquet",
+            "peak_rss_bytes": 1280589824,
+            "query_seconds": 9.781000000002678,
+            "rows": 440993
+          },
+          {
+            "output_bytes": 28029911,
+            "pairs_per_second": 51378.054456570135,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0037.parquet",
+            "peak_rss_bytes": 1301544960,
+            "query_seconds": 8.594000000004598,
+            "rows": 441543
+          },
+          {
+            "output_bytes": 27949697,
+            "pairs_per_second": 53688.202247178415,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0038.parquet",
+            "peak_rss_bytes": 1274535936,
+            "query_seconds": 8.18800000000192,
+            "rows": 439599
+          },
+          {
+            "output_bytes": 27913563,
+            "pairs_per_second": 52712.65609989547,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0039.parquet",
+            "peak_rss_bytes": 1283043328,
+            "query_seconds": 8.328000000001339,
+            "rows": 438991
+          },
+          {
+            "output_bytes": 27754923,
+            "pairs_per_second": 52854.20447671274,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0040.parquet",
+            "peak_rss_bytes": 1301647360,
+            "query_seconds": 8.264999999999418,
+            "rows": 436840
+          },
+          {
+            "output_bytes": 27806240,
+            "pairs_per_second": 46177.2272008406,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0041.parquet",
+            "peak_rss_bytes": 1259610112,
+            "query_seconds": 9.485000000000582,
+            "rows": 437991
+          },
+          {
+            "output_bytes": 28032402,
+            "pairs_per_second": 45347.179487179485,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0042.parquet",
+            "peak_rss_bytes": 1264979968,
+            "query_seconds": 9.75,
+            "rows": 442135
+          },
+          {
+            "output_bytes": 27859933,
+            "pairs_per_second": 44708.38011633506,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0043.parquet",
+            "peak_rss_bytes": 1275437056,
+            "query_seconds": 9.797000000005937,
+            "rows": 438008
+          },
+          {
+            "output_bytes": 27888360,
+            "pairs_per_second": 47178.245463357955,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0044.parquet",
+            "peak_rss_bytes": 1266917376,
+            "query_seconds": 9.312999999994645,
+            "rows": 439371
+          },
+          {
+            "output_bytes": 27958070,
+            "pairs_per_second": 50517.60522997308,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0045.parquet",
+            "peak_rss_bytes": 1285722112,
+            "query_seconds": 8.718999999997322,
+            "rows": 440463
+          },
+          {
+            "output_bytes": 28044307,
+            "pairs_per_second": 52915.90909090541,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0046.parquet",
+            "peak_rss_bytes": 1297907712,
+            "query_seconds": 8.360000000000582,
+            "rows": 442377
+          },
+          {
+            "output_bytes": 27851060,
+            "pairs_per_second": 51681.662533963674,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0047.parquet",
+            "peak_rss_bytes": 1295540224,
+            "query_seconds": 8.468999999997322,
+            "rows": 437692
+          },
+          {
+            "output_bytes": 27936124,
+            "pairs_per_second": 53876.42515631246,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0048.parquet",
+            "peak_rss_bytes": 1274535936,
+            "query_seconds": 8.156999999999243,
+            "rows": 439470
+          },
+          {
+            "output_bytes": 27971491,
+            "pairs_per_second": 50360.91428571429,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0049.parquet",
+            "peak_rss_bytes": 1283043328,
+            "query_seconds": 8.75,
+            "rows": 440658
+          },
+          {
+            "output_bytes": 27966197,
+            "pairs_per_second": 49067.90054634088,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0050.parquet",
+            "peak_rss_bytes": 1301544960,
+            "query_seconds": 8.968999999997322,
+            "rows": 440090
+          },
+          {
+            "output_bytes": 28047073,
+            "pairs_per_second": 51086.17303916353,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0051.parquet",
+            "peak_rss_bytes": 1276551168,
+            "query_seconds": 8.656999999999243,
+            "rows": 442253
+          },
+          {
+            "output_bytes": 27998217,
+            "pairs_per_second": 50662.07055037713,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0052.parquet",
+            "peak_rss_bytes": 1301647360,
+            "query_seconds": 8.703000000001339,
+            "rows": 440912
+          },
+          {
+            "output_bytes": 28034307,
+            "pairs_per_second": 51087.37414653457,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0053.parquet",
+            "peak_rss_bytes": 1274396672,
+            "query_seconds": 8.640999999995984,
+            "rows": 441446
+          },
+          {
+            "output_bytes": 27905228,
+            "pairs_per_second": 48462.87101400275,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0054.parquet",
+            "peak_rss_bytes": 1279295488,
+            "query_seconds": 9.06300000000192,
+            "rows": 439219
+          },
+          {
+            "output_bytes": 27872427,
+            "pairs_per_second": 50278.910006846585,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0055.parquet",
+            "peak_rss_bytes": 1298259968,
+            "query_seconds": 8.734000000004016,
+            "rows": 439136
+          },
+          {
+            "output_bytes": 27988318,
+            "pairs_per_second": 46230.61588499383,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0056.parquet",
+            "peak_rss_bytes": 1259610112,
+            "query_seconds": 9.531000000002678,
+            "rows": 440624
+          },
+          {
+            "output_bytes": 27824394,
+            "pairs_per_second": 47942.231947486645,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0057.parquet",
+            "peak_rss_bytes": 1291001856,
+            "query_seconds": 9.139999999999418,
+            "rows": 438192
+          },
+          {
+            "output_bytes": 28050687,
+            "pairs_per_second": 49532.16767541653,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0058.parquet",
+            "peak_rss_bytes": 1264979968,
+            "query_seconds": 8.921999999998661,
+            "rows": 441926
+          },
+          {
+            "output_bytes": 27916216,
+            "pairs_per_second": 46657.82211845282,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0059.parquet",
+            "peak_rss_bytes": 1275437056,
+            "query_seconds": 9.421999999998661,
+            "rows": 439610
+          },
+          {
+            "output_bytes": 27851769,
+            "pairs_per_second": 55024.595306832394,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0060.parquet",
+            "peak_rss_bytes": 1285722112,
+            "query_seconds": 7.9689999999973224,
+            "rows": 438491
+          },
+          {
+            "output_bytes": 27833836,
+            "pairs_per_second": 54061.65988410115,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0061.parquet",
+            "peak_rss_bytes": 1297907712,
+            "query_seconds": 8.10899999999674,
+            "rows": 438386
+          },
+          {
+            "output_bytes": 27961831,
+            "pairs_per_second": 51706.98766882326,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0062.parquet",
+            "peak_rss_bytes": 1295540224,
+            "query_seconds": 8.514999999999418,
+            "rows": 440285
+          },
+          {
+            "output_bytes": 28018488,
+            "pairs_per_second": 51142.608695652176,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0063.parquet",
+            "peak_rss_bytes": 1281769472,
+            "query_seconds": 8.625,
+            "rows": 441105
+          },
+          {
+            "output_bytes": 28060565,
+            "pairs_per_second": 55526.289371332496,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0064.parquet",
+            "peak_rss_bytes": 1283043328,
+            "query_seconds": 7.9689999999973224,
+            "rows": 442489
+          },
+          {
+            "output_bytes": 28015531,
+            "pairs_per_second": 52819.97607655135,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0065.parquet",
+            "peak_rss_bytes": 1290084352,
+            "query_seconds": 8.360000000000582,
+            "rows": 441575
+          },
+          {
+            "output_bytes": 28088393,
+            "pairs_per_second": 49642.34476575504,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0066.parquet",
+            "peak_rss_bytes": 1274396672,
+            "query_seconds": 8.921999999998661,
+            "rows": 442909
+          },
+          {
+            "output_bytes": 28085585,
+            "pairs_per_second": 51393.739130434784,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0067.parquet",
+            "peak_rss_bytes": 1301647360,
+            "query_seconds": 8.625,
+            "rows": 443271
+          },
+          {
+            "output_bytes": 28024139,
+            "pairs_per_second": 53891.38120199047,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0068.parquet",
+            "peak_rss_bytes": 1301544960,
+            "query_seconds": 8.203000000001339,
+            "rows": 442071
+          },
+          {
+            "output_bytes": 28055303,
+            "pairs_per_second": 49927.75708321061,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0069.parquet",
+            "peak_rss_bytes": 1286676480,
+            "query_seconds": 8.85899999999674,
+            "rows": 442310
+          },
+          {
+            "output_bytes": 27817276,
+            "pairs_per_second": 48701.91451471046,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0070.parquet",
+            "peak_rss_bytes": 1298259968,
+            "query_seconds": 8.98399999999674,
+            "rows": 437538
+          },
+          {
+            "output_bytes": 28011422,
+            "pairs_per_second": 48792.306842054306,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0071.parquet",
+            "peak_rss_bytes": 1301217280,
+            "query_seconds": 9.046999999998661,
+            "rows": 441424
+          },
+          {
+            "output_bytes": 27983407,
+            "pairs_per_second": 51416.4533395117,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0072.parquet",
+            "peak_rss_bytes": 1270607872,
+            "query_seconds": 8.594000000004598,
+            "rows": 441873
+          },
+          {
+            "output_bytes": 28163350,
+            "pairs_per_second": 50988.530794789025,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0073.parquet",
+            "peak_rss_bytes": 1266143232,
+            "query_seconds": 8.719000000004598,
+            "rows": 444569
+          },
+          {
+            "output_bytes": 27960737,
+            "pairs_per_second": 49732.957110606214,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0074.parquet",
+            "peak_rss_bytes": 1288577024,
+            "query_seconds": 8.860000000000582,
+            "rows": 440634
+          },
+          {
+            "output_bytes": 28785846,
+            "pairs_per_second": 55056.87718872752,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0075.parquet",
+            "peak_rss_bytes": 1307365376,
+            "query_seconds": 8.281000000002678,
+            "rows": 455926
+          },
+          {
+            "output_bytes": 30603619,
+            "pairs_per_second": 54404.94211929892,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0076.parquet",
+            "peak_rss_bytes": 1389232128,
+            "query_seconds": 8.984000000004016,
+            "rows": 488774
+          },
+          {
+            "output_bytes": 30264369,
+            "pairs_per_second": 53131.41661158062,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0077.parquet",
+            "peak_rss_bytes": 1377447936,
+            "query_seconds": 9.078000000001339,
+            "rows": 482327
+          },
+          {
+            "output_bytes": 30022889,
+            "pairs_per_second": 52065.96162233643,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0078.parquet",
+            "peak_rss_bytes": 1358372864,
+            "query_seconds": 9.171999999998661,
+            "rows": 477549
+          },
+          {
+            "output_bytes": 29997078,
+            "pairs_per_second": 51230.81046311443,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0079.parquet",
+            "peak_rss_bytes": 1361367040,
+            "query_seconds": 9.328000000001339,
+            "rows": 477881
+          },
+          {
+            "output_bytes": 30761416,
+            "pairs_per_second": 49195.5,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0080.parquet",
+            "peak_rss_bytes": 1414107136,
+            "query_seconds": 10.0,
+            "rows": 491955
+          },
+          {
+            "output_bytes": 30177101,
+            "pairs_per_second": 51719.96552094187,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0081.parquet",
+            "peak_rss_bytes": 1360740352,
+            "query_seconds": 9.281000000002678,
+            "rows": 480013
+          },
+          {
+            "output_bytes": 30436384,
+            "pairs_per_second": 50578.520137388376,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0082.parquet",
+            "peak_rss_bytes": 1399934976,
+            "query_seconds": 9.60899999999674,
+            "rows": 486009
+          },
+          {
+            "output_bytes": 30089007,
+            "pairs_per_second": 51324.93567752265,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0083.parquet",
+            "peak_rss_bytes": 1345941504,
+            "query_seconds": 9.328000000001339,
+            "rows": 478759
+          },
+          {
+            "output_bytes": 30213471,
+            "pairs_per_second": 49218.68929559619,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0084.parquet",
+            "peak_rss_bytes": 1389355008,
+            "query_seconds": 9.780999999995402,
+            "rows": 481408
+          },
+          {
+            "output_bytes": 30270880,
+            "pairs_per_second": 51048.95623610237,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0085.parquet",
+            "peak_rss_bytes": 1390768128,
+            "query_seconds": 9.43699999999808,
+            "rows": 481749
+          },
+          {
+            "output_bytes": 30373644,
+            "pairs_per_second": 49777.343348057526,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0086.parquet",
+            "peak_rss_bytes": 1359298560,
+            "query_seconds": 9.719000000004598,
+            "rows": 483786
+          },
+          {
+            "output_bytes": 30628612,
+            "pairs_per_second": 50089.19610855393,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0087.parquet",
+            "peak_rss_bytes": 1369337856,
+            "query_seconds": 9.764999999999418,
+            "rows": 489121
+          },
+          {
+            "output_bytes": 30028283,
+            "pairs_per_second": 49922.635205672705,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0088.parquet",
+            "peak_rss_bytes": 1387630592,
+            "query_seconds": 9.578000000001339,
+            "rows": 478159
+          },
+          {
+            "output_bytes": 30131649,
+            "pairs_per_second": 49689.00165702449,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0089.parquet",
+            "peak_rss_bytes": 1372905472,
+            "query_seconds": 9.655999999995402,
+            "rows": 479797
+          },
+          {
+            "output_bytes": 30707033,
+            "pairs_per_second": 50910.64935064935,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0090.parquet",
+            "peak_rss_bytes": 1409101824,
+            "query_seconds": 9.625,
+            "rows": 490015
+          },
+          {
+            "output_bytes": 30316026,
+            "pairs_per_second": 52911.06005909775,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0091.parquet",
+            "peak_rss_bytes": 1389232128,
+            "query_seconds": 9.140999999995984,
+            "rows": 483660
+          },
+          {
+            "output_bytes": 30050314,
+            "pairs_per_second": 50416.280050590205,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0092.parquet",
+            "peak_rss_bytes": 1377447936,
+            "query_seconds": 9.484000000004016,
+            "rows": 478148
+          },
+          {
+            "output_bytes": 30607645,
+            "pairs_per_second": 50494.72704715339,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0093.parquet",
+            "peak_rss_bytes": 1378557952,
+            "query_seconds": 9.671999999998661,
+            "rows": 488385
+          },
+          {
+            "output_bytes": 30458013,
+            "pairs_per_second": 53706.35621276795,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0094.parquet",
+            "peak_rss_bytes": 1374687232,
+            "query_seconds": 9.06199999999808,
+            "rows": 486687
+          },
+          {
+            "output_bytes": 29925934,
+            "pairs_per_second": 50123.89473684211,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0095.parquet",
+            "peak_rss_bytes": 1360740352,
+            "query_seconds": 9.5,
+            "rows": 476177
+          },
+          {
+            "output_bytes": 30534381,
+            "pairs_per_second": 51049.3348695997,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0096.parquet",
+            "peak_rss_bytes": 1414107136,
+            "query_seconds": 9.546999999998661,
+            "rows": 487368
+          },
+          {
+            "output_bytes": 30466919,
+            "pairs_per_second": 49182.6835443038,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0097.parquet",
+            "peak_rss_bytes": 1399934976,
+            "query_seconds": 9.875,
+            "rows": 485679
+          },
+          {
+            "output_bytes": 30431892,
+            "pairs_per_second": 51632.18879558191,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0098.parquet",
+            "peak_rss_bytes": 1371480064,
+            "query_seconds": 9.406999999999243,
+            "rows": 485704
+          },
+          {
+            "output_bytes": 30343498,
+            "pairs_per_second": 49274.623524616814,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0099.parquet",
+            "peak_rss_bytes": 1389355008,
+            "query_seconds": 9.828000000001339,
+            "rows": 484271
+          },
+          {
+            "output_bytes": 30203947,
+            "pairs_per_second": 47481.58723905798,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0100.parquet",
+            "peak_rss_bytes": 1390768128,
+            "query_seconds": 10.156000000002678,
+            "rows": 482223
+          },
+          {
+            "output_bytes": 30350001,
+            "pairs_per_second": 51112.261062428646,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0101.parquet",
+            "peak_rss_bytes": 1365602304,
+            "query_seconds": 9.468999999997322,
+            "rows": 483982
+          },
+          {
+            "output_bytes": 30242827,
+            "pairs_per_second": 47239.63540134634,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0102.parquet",
+            "peak_rss_bytes": 1369337856,
+            "query_seconds": 10.203000000001339,
+            "rows": 481986
+          },
+          {
+            "output_bytes": 30196773,
+            "pairs_per_second": 48310.660102475165,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0103.parquet",
+            "peak_rss_bytes": 1387970560,
+            "query_seconds": 9.953000000001339,
+            "rows": 480836
+          },
+          {
+            "output_bytes": 30307224,
+            "pairs_per_second": 48562.44348437004,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0104.parquet",
+            "peak_rss_bytes": 1377402880,
+            "query_seconds": 9.953000000001339,
+            "rows": 483342
+          },
+          {
+            "output_bytes": 30354646,
+            "pairs_per_second": 52668.589464507924,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0105.parquet",
+            "peak_rss_bytes": 1409101824,
+            "query_seconds": 9.18800000000192,
+            "rows": 483919
+          },
+          {
+            "output_bytes": 29917977,
+            "pairs_per_second": 52410.773298075546,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0106.parquet",
+            "peak_rss_bytes": 1389232128,
+            "query_seconds": 9.078000000001339,
+            "rows": 475785
+          },
+          {
+            "output_bytes": 30234699,
+            "pairs_per_second": 54033.40058283707,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0107.parquet",
+            "peak_rss_bytes": 1383493632,
+            "query_seconds": 8.921999999998661,
+            "rows": 482086
+          },
+          {
+            "output_bytes": 30064640,
+            "pairs_per_second": 51645.94594594595,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0108.parquet",
+            "peak_rss_bytes": 1374687232,
+            "query_seconds": 9.25,
+            "rows": 477725
+          },
+          {
+            "output_bytes": 30181946,
+            "pairs_per_second": 51128.32234742325,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0109.parquet",
+            "peak_rss_bytes": 1378557952,
+            "query_seconds": 9.406000000002678,
+            "rows": 480913
+          },
+          {
+            "output_bytes": 30200705,
+            "pairs_per_second": 50892.62667939301,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0110.parquet",
+            "peak_rss_bytes": 1364828160,
+            "query_seconds": 9.452999999994063,
+            "rows": 481088
+          },
+          {
+            "output_bytes": 30502454,
+            "pairs_per_second": 50007.601438106925,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0111.parquet",
+            "peak_rss_bytes": 1385730048,
+            "query_seconds": 9.735000000000582,
+            "rows": 486824
+          },
+          {
+            "output_bytes": 30022437,
+            "pairs_per_second": 49582.857142857145,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0112.parquet",
+            "peak_rss_bytes": 1414107136,
+            "query_seconds": 9.625,
+            "rows": 477235
+          },
+          {
+            "output_bytes": 30536693,
+            "pairs_per_second": 54365.240701432725,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0113.parquet",
+            "peak_rss_bytes": 1399934976,
+            "query_seconds": 8.953000000001339,
+            "rows": 486732
+          },
+          {
+            "output_bytes": 30619254,
+            "pairs_per_second": 50212.45120195175,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0114.parquet",
+            "peak_rss_bytes": 1399410688,
+            "query_seconds": 9.734000000004016,
+            "rows": 488768
+          },
+          {
+            "output_bytes": 30241171,
+            "pairs_per_second": 49269.9160352078,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0115.parquet",
+            "peak_rss_bytes": 1390768128,
+            "query_seconds": 9.76600000000326,
+            "rows": 481170
+          },
+          {
+            "output_bytes": 30329034,
+            "pairs_per_second": 49266.51039544381,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0116.parquet",
+            "peak_rss_bytes": 1365602304,
+            "query_seconds": 9.81199999999808,
+            "rows": 483403
+          },
+          {
+            "output_bytes": 30381403,
+            "pairs_per_second": 48322.016974541,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0117.parquet",
+            "peak_rss_bytes": 1401446400,
+            "query_seconds": 10.014999999999418,
+            "rows": 483945
+          },
+          {
+            "output_bytes": 29645047,
+            "pairs_per_second": 51618.30136986302,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0118.parquet",
+            "peak_rss_bytes": 1369337856,
+            "query_seconds": 9.125,
+            "rows": 471017
+          },
+          {
+            "output_bytes": 30444294,
+            "pairs_per_second": 46853.87951807229,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0119.parquet",
+            "peak_rss_bytes": 1389871104,
+            "query_seconds": 10.375,
+            "rows": 486109
+          },
+          {
+            "output_bytes": 30108120,
+            "pairs_per_second": 53137.08961843687,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0120.parquet",
+            "peak_rss_bytes": 1409101824,
+            "query_seconds": 9.01600000000326,
+            "rows": 479084
+          },
+          {
+            "output_bytes": 29734599,
+            "pairs_per_second": 54583.52587803269,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0121.parquet",
+            "peak_rss_bytes": 1389232128,
+            "query_seconds": 8.655999999995402,
+            "rows": 472475
+          },
+          {
+            "output_bytes": 30365954,
+            "pairs_per_second": 50802.853845332495,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0122.parquet",
+            "peak_rss_bytes": 1389043712,
+            "query_seconds": 9.531000000002678,
+            "rows": 484202
+          },
+          {
+            "output_bytes": 29936065,
+            "pairs_per_second": 50617.26557515038,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0123.parquet",
+            "peak_rss_bytes": 1374687232,
+            "query_seconds": 9.406000000002678,
+            "rows": 476106
+          },
+          {
+            "output_bytes": 30203803,
+            "pairs_per_second": 50643.89473684211,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0124.parquet",
+            "peak_rss_bytes": 1378557952,
+            "query_seconds": 9.5,
+            "rows": 481117
+          },
+          {
+            "output_bytes": 30243064,
+            "pairs_per_second": 46788.48208216594,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0125.parquet",
+            "peak_rss_bytes": 1365352448,
+            "query_seconds": 10.296999999998661,
+            "rows": 481781
+          },
+          {
+            "output_bytes": 30147970,
+            "pairs_per_second": 49487.581160459005,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0126.parquet",
+            "peak_rss_bytes": 1402437632,
+            "query_seconds": 9.703000000001339,
+            "rows": 480178
+          },
+          {
+            "output_bytes": 30099824,
+            "pairs_per_second": 49074.8717948718,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0127.parquet",
+            "peak_rss_bytes": 1385730048,
+            "query_seconds": 9.75,
+            "rows": 478480
+          },
+          {
+            "output_bytes": 30001110,
+            "pairs_per_second": 53494.05962789415,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0128.parquet",
+            "peak_rss_bytes": 1414107136,
+            "query_seconds": 8.921999999998661,
+            "rows": 477274
+          },
+          {
+            "output_bytes": 30212787,
+            "pairs_per_second": 52454.535542964484,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0129.parquet",
+            "peak_rss_bytes": 1399410688,
+            "query_seconds": 9.171999999998661,
+            "rows": 481113
+          },
+          {
+            "output_bytes": 30395903,
+            "pairs_per_second": 53596.05802239469,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0130.parquet",
+            "peak_rss_bytes": 1390768128,
+            "query_seconds": 9.030999999995402,
+            "rows": 484026
+          },
+          {
+            "output_bytes": 29969517,
+            "pairs_per_second": 50005.246039226324,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0131.parquet",
+            "peak_rss_bytes": 1365602304,
+            "query_seconds": 9.531000000002678,
+            "rows": 476600
+          },
+          {
+            "output_bytes": 30203456,
+            "pairs_per_second": 52748.270940846625,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0132.parquet",
+            "peak_rss_bytes": 1369337856,
+            "query_seconds": 9.10899999999674,
+            "rows": 480484
+          },
+          {
+            "output_bytes": 30399632,
+            "pairs_per_second": 47897.71490752361,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0133.parquet",
+            "peak_rss_bytes": 1401446400,
+            "query_seconds": 10.10899999999674,
+            "rows": 484198
+          },
+          {
+            "output_bytes": 30148957,
+            "pairs_per_second": 49762.265325194465,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0134.parquet",
+            "peak_rss_bytes": 1413222400,
+            "query_seconds": 9.640999999995984,
+            "rows": 479758
+          },
+          {
+            "output_bytes": 30348927,
+            "pairs_per_second": 49814.384195918654,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0135.parquet",
+            "peak_rss_bytes": 1409101824,
+            "query_seconds": 9.718999999997322,
+            "rows": 484146
+          },
+          {
+            "output_bytes": 30181128,
+            "pairs_per_second": 51137.8760497543,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0136.parquet",
+            "peak_rss_bytes": 1389232128,
+            "query_seconds": 9.406999999999243,
+            "rows": 481054
+          },
+          {
+            "output_bytes": 29771161,
+            "pairs_per_second": 53392.48222144548,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0137.parquet",
+            "peak_rss_bytes": 1389043712,
+            "query_seconds": 8.859000000004016,
+            "rows": 473004
+          },
+          {
+            "output_bytes": 30158068,
+            "pairs_per_second": 49309.02564102564,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0138.parquet",
+            "peak_rss_bytes": 1375428608,
+            "query_seconds": 9.75,
+            "rows": 480763
+          },
+          {
+            "output_bytes": 30255687,
+            "pairs_per_second": 51078.936215289454,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0139.parquet",
+            "peak_rss_bytes": 1378557952,
+            "query_seconds": 9.43800000000192,
+            "rows": 482083
+          },
+          {
+            "output_bytes": 30076681,
+            "pairs_per_second": 47264.79012345679,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0140.parquet",
+            "peak_rss_bytes": 1414107136,
+            "query_seconds": 10.125,
+            "rows": 478556
+          },
+          {
+            "output_bytes": 29876725,
+            "pairs_per_second": 49096.98097602003,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0141.parquet",
+            "peak_rss_bytes": 1365352448,
+            "query_seconds": 9.671999999998661,
+            "rows": 474866
+          },
+          {
+            "output_bytes": 30432392,
+            "pairs_per_second": 55719.06239226995,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0142.parquet",
+            "peak_rss_bytes": 1406099456,
+            "query_seconds": 8.703000000001339,
+            "rows": 484923
+          },
+          {
+            "output_bytes": 30127628,
+            "pairs_per_second": 48586.51115618375,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0143.parquet",
+            "peak_rss_bytes": 1385730048,
+            "query_seconds": 9.860000000000582,
+            "rows": 479063
+          },
+          {
+            "output_bytes": 30038662,
+            "pairs_per_second": 49922.32198788194,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0144.parquet",
+            "peak_rss_bytes": 1399410688,
+            "query_seconds": 9.578000000001339,
+            "rows": 478156
+          },
+          {
+            "output_bytes": 30159602,
+            "pairs_per_second": 47574.41952767775,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0145.parquet",
+            "peak_rss_bytes": 1390768128,
+            "query_seconds": 10.078000000001339,
+            "rows": 479455
+          },
+          {
+            "output_bytes": 30288776,
+            "pairs_per_second": 48483.57279211646,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0146.parquet",
+            "peak_rss_bytes": 1372983296,
+            "query_seconds": 9.953000000001339,
+            "rows": 482557
+          },
+          {
+            "output_bytes": 30552066,
+            "pairs_per_second": 49696.131468823776,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0147.parquet",
+            "peak_rss_bytes": 1365602304,
+            "query_seconds": 9.796999999998661,
+            "rows": 486873
+          },
+          {
+            "output_bytes": 30011866,
+            "pairs_per_second": 48243.36327849364,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0148.parquet",
+            "peak_rss_bytes": 1416261632,
+            "query_seconds": 9.906999999999243,
+            "rows": 477947
+          },
+          {
+            "output_bytes": 30852841,
+            "pairs_per_second": 49875.44160694839,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0149.parquet",
+            "peak_rss_bytes": 1413222400,
+            "query_seconds": 9.906999999999243,
+            "rows": 494116
+          },
+          {
+            "output_bytes": 30744729,
+            "pairs_per_second": 50146.16719404585,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0150.parquet",
+            "peak_rss_bytes": 1409101824,
+            "query_seconds": 9.796999999998661,
+            "rows": 491282
+          },
+          {
+            "output_bytes": 30346248,
+            "pairs_per_second": 52691.11885066378,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0151.parquet",
+            "peak_rss_bytes": 1389232128,
+            "query_seconds": 9.18800000000192,
+            "rows": 484126
+          },
+          {
+            "output_bytes": 30764309,
+            "pairs_per_second": 51875.17132313862,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0152.parquet",
+            "peak_rss_bytes": 1405259776,
+            "query_seconds": 9.485000000000582,
+            "rows": 492036
+          },
+          {
+            "output_bytes": 30836143,
+            "pairs_per_second": 51330.805194805194,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0153.parquet",
+            "peak_rss_bytes": 1394692096,
+            "query_seconds": 9.625,
+            "rows": 494059
+          },
+          {
+            "output_bytes": 30615657,
+            "pairs_per_second": 51486.21052631579,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0154.parquet",
+            "peak_rss_bytes": 1390018560,
+            "query_seconds": 9.5,
+            "rows": 489119
+          },
+          {
+            "output_bytes": 30708288,
+            "pairs_per_second": 48709.332276612884,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0155.parquet",
+            "peak_rss_bytes": 1417703424,
+            "query_seconds": 10.093999999997322,
+            "rows": 491672
+          },
+          {
+            "output_bytes": 30642087,
+            "pairs_per_second": 44826.29365513932,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0156.parquet",
+            "peak_rss_bytes": 1376329728,
+            "query_seconds": 10.93800000000192,
+            "rows": 490310
+          },
+          {
+            "output_bytes": 30394387,
+            "pairs_per_second": 47570.322454173904,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0157.parquet",
+            "peak_rss_bytes": 1414107136,
+            "query_seconds": 10.203000000001339,
+            "rows": 485360
+          },
+          {
+            "output_bytes": 30813367,
+            "pairs_per_second": 53046.78928687437,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0158.parquet",
+            "peak_rss_bytes": 1420115968,
+            "query_seconds": 9.296999999998661,
+            "rows": 493176
+          },
+          {
+            "output_bytes": 30826462,
+            "pairs_per_second": 50194.953194946356,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0159.parquet",
+            "peak_rss_bytes": 1413259264,
+            "query_seconds": 9.828000000001339,
+            "rows": 493316
+          },
+          {
+            "output_bytes": 30986038,
+            "pairs_per_second": 49985.688369287134,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0160.parquet",
+            "peak_rss_bytes": 1427996672,
+            "query_seconds": 9.921999999998661,
+            "rows": 495958
+          },
+          {
+            "output_bytes": 30898600,
+            "pairs_per_second": 49257.70224608374,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0161.parquet",
+            "peak_rss_bytes": 1411747840,
+            "query_seconds": 10.06199999999808,
+            "rows": 495631
+          },
+          {
+            "output_bytes": 30814993,
+            "pairs_per_second": 47737.60650657785,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0162.parquet",
+            "peak_rss_bytes": 1399148544,
+            "query_seconds": 10.328000000001339,
+            "rows": 493034
+          },
+          {
+            "output_bytes": 30326263,
+            "pairs_per_second": 53483.36465127353,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0163.parquet",
+            "peak_rss_bytes": 1396547584,
+            "query_seconds": 9.046999999998661,
+            "rows": 483864
+          },
+          {
+            "output_bytes": 30757677,
+            "pairs_per_second": 48989.63214038733,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0164.parquet",
+            "peak_rss_bytes": 1422020608,
+            "query_seconds": 10.030999999995402,
+            "rows": 491415
+          },
+          {
+            "output_bytes": 30703053,
+            "pairs_per_second": 50452.61858217256,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0165.parquet",
+            "peak_rss_bytes": 1409101824,
+            "query_seconds": 9.718999999997322,
+            "rows": 490349
+          },
+          {
+            "output_bytes": 30179315,
+            "pairs_per_second": 47880.96899609927,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0166.parquet",
+            "peak_rss_bytes": 1413222400,
+            "query_seconds": 10.031000000002678,
+            "rows": 480294
+          },
+          {
+            "output_bytes": 30134232,
+            "pairs_per_second": 51204.18848165342,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0167.parquet",
+            "peak_rss_bytes": 1405259776,
+            "query_seconds": 9.359000000004016,
+            "rows": 479220
+          },
+          {
+            "output_bytes": 30377278,
+            "pairs_per_second": 52262.60118726718,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0168.parquet",
+            "peak_rss_bytes": 1394692096,
+            "query_seconds": 9.264999999999418,
+            "rows": 484213
+          },
+          {
+            "output_bytes": 30536355,
+            "pairs_per_second": 54408.01965820699,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0169.parquet",
+            "peak_rss_bytes": 1400238080,
+            "query_seconds": 8.953000000001339,
+            "rows": 487115
+          },
+          {
+            "output_bytes": 30197159,
+            "pairs_per_second": 56077.551973802816,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0170.parquet",
+            "peak_rss_bytes": 1417703424,
+            "query_seconds": 8.562000000005355,
+            "rows": 480136
+          },
+          {
+            "output_bytes": 30053785,
+            "pairs_per_second": 57504.7515938758,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0171.parquet",
+            "peak_rss_bytes": 1420115968,
+            "query_seconds": 8.31300000000192,
+            "rows": 478037
+          },
+          {
+            "output_bytes": 30235930,
+            "pairs_per_second": 59323.83771115572,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0172.parquet",
+            "peak_rss_bytes": 1414107136,
+            "query_seconds": 8.109000000004016,
+            "rows": 481057
+          },
+          {
+            "output_bytes": 29995441,
+            "pairs_per_second": 58066.91811652671,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0173.parquet",
+            "peak_rss_bytes": 1376329728,
+            "query_seconds": 8.219000000004598,
+            "rows": 477252
+          },
+          {
+            "output_bytes": 30326908,
+            "pairs_per_second": 61336.0,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0174.parquet",
+            "peak_rss_bytes": 1413259264,
+            "query_seconds": 7.875,
+            "rows": 483021
+          },
+          {
+            "output_bytes": 30371584,
+            "pairs_per_second": 60831.78275083323,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0175.parquet",
+            "peak_rss_bytes": 1427996672,
+            "query_seconds": 7.9539999999979045,
+            "rows": 483856
+          },
+          {
+            "output_bytes": 30014885,
+            "pairs_per_second": 62814.722149087196,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0176.parquet",
+            "peak_rss_bytes": 1411747840,
+            "query_seconds": 7.5939999999973224,
+            "rows": 477015
+          },
+          {
+            "output_bytes": 30310054,
+            "pairs_per_second": 66424.30498207865,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0177.parquet",
+            "peak_rss_bytes": 1396547584,
+            "query_seconds": 7.26600000000326,
+            "rows": 482639
+          },
+          {
+            "output_bytes": 18251485,
+            "pairs_per_second": 54544.61538461538,
+            "part": "Run2012BC_DoubleMuParked_Muons_part_0178.parquet",
+            "peak_rss_bytes": 1399148544,
+            "query_seconds": 4.875,
+            "rows": 265905
+          }
+        ],
+        "peak_rss_bytes": 19815436288
+      },
+      "name": "gold",
+      "rows_out": 83057658,
+      "rows_per_s": 587552.0680001768,
+      "started_at": "2026-11-10T08:36:52.711113+00:00",
+      "status": "succeeded"
+    },
+    {
+      "duration_s": 4.345923999993829,
+      "ended_at": "2026-11-10T08:39:18.426080+00:00",
+      "metrics": {
+        "batches": 4,
+        "peak_rss_bytes": 2760163328
+      },
+      "name": "fit",
+      "rows_out": 4,
+      "rows_per_s": 0.9204026577560215,
+      "started_at": "2026-11-10T08:39:14.080059+00:00",
+      "status": "succeeded"
+    }
+  ],
+  "started_at": "2026-11-10T08:20:43.046113+00:00",
+  "state": "succeeded",
+  "summary": "ColliderLake run summary\nstage    | status  | duration | rows_out | rows_per_second\n---------|---------|----------|----------|----------------\nacquire  | SUCCESS | 1.2s     | 1 | 0.80\nbronze   | SUCCESS | 14m45s   | 210,862,869 | 238002.54\nsilver   | SUCCESS | 1m22s    | 209,665,313 | 2548161.95\ngold     | SUCCESS | 2m21s    | 83,057,658 | 587694.29\nfit      | SUCCESS | 4.3s     | 4 | 0.92\n\ndataset_id: run2012bc_doublemuparked\noverall_status: SUCCESS\ntotal_wall_time: 18m35s\nworkers: auto\nstage_speedup: measured by scripts/bench_compare.py against a prior run summary\npipeline_speedup: measured by scripts/bench_compare.py against a prior run summary\nanalysis: resonance\nselection_id: 4d93aea9\nfit_config_id: 4c5247e8\nresults: <data_root>/results\ndq_report: <data_root>/results/dq_report.json\n"
+}
