@@ -243,7 +243,8 @@ def _render_ladder(
 ) -> list[Path]:
     settings = cfg["ladder"]
     centers = np.sqrt(edges[:-1] * edges[1:])
-    fig, ax = plt.subplots(figsize=(9.2, 6.2), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(9.2, 6.2), constrained_layout=False)
+    fig.subplots_adjust(left=0.09, right=0.985, top=0.98, bottom=0.18)
     ax.step(centers, counts, where="mid", color="black", linewidth=0.85)
     ax.set_xscale("log")
     ax.set_yscale("log")
