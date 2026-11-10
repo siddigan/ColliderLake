@@ -1,0 +1,33 @@
+{
+  "run_id": "20261110T000101.653408Z-eed7ca",
+  "files": [
+    {
+      "name": "dimuon_ladder.png",
+      "sha256": "6eb5bb0271141f9c646abd88c0657e1b8925b61f1a26873b48e0a5c7fa38c9e7"
+    },
+    {
+      "name": "dimuon_ladder.pdf",
+      "sha256": "aaa2ec00cebd662d3d1508ac465d36cc70a6eb2984de7798f3a17ba432f75aa0"
+    },
+    {
+      "name": "jpsi_fit.png",
+      "sha256": "b92fea19f31475bf6ad08e210ce10e326ea3209a1de5379f1611a6e71f80fc06"
+    },
+    {
+      "name": "psi2s_fit.png",
+      "sha256": "6d627b800155fdfee97e74ae4c92e8b1c7cedeea6843f493837b20a920aeef9b"
+    },
+    {
+      "name": "upsilon_fit.png",
+      "sha256": "e79c19be7248d7507d87ec439f39f644144975130b6038b6756aec1cd18afbb4"
+    },
+    {
+      "name": "z_fit.png",
+      "sha256": "a5bc10ea67986ed0d654ce8ae86c82782f7699c20ca4ed8528867aa84c548074"
+    },
+    {
+      "name": "pdg_table.md",
+      "sha256": "591f2bd71d98d6140159c2779d5eb953c253e6992e59e62df53124ae86f9d388"
+    }
+  ]
+}

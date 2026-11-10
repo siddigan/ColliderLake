@@ -1,5 +1,8 @@
 # ColliderLake
 
+![Dimuon invariant-mass spectrum from 61.5M events of 2012 CMS Open Data](docs/results/figures/dimuon_ladder.png)
+*The dimuon resonance ladder from 83,057,658 opposite-charge pairs: J/psi, psi', Upsilon(1S-3S) and Z fitted within 0.10-0.36% of PDG values; omega and phi visible unfitted at low mass. Every annotation is drawn from the pipeline's own fit artifacts; see [docs/results/M1_RESONANCE_LADDER.md](docs/results/M1_RESONANCE_LADDER.md).*
+
 A lakehouse-style data platform for CMS Open Data. ColliderLake ingests real
 collision data from the [CERN Open Data portal](https://opendata.cern.ch),
 processes it through structured, quality-gated layers, and reproduces
@@ -87,6 +90,7 @@ bronze/silver/gold layers, and DQ gates are operational. Airflow DAGs, CI,
 figure generation, and the full-statistics production run are in progress.
 The earlier proof-of-concept is preserved under `POC/`.
 M1 resonance ladder result ledger: [docs/results/M1_RESONANCE_LADDER.md](docs/results/M1_RESONANCE_LADDER.md).
+Project overview page: docs/overview.html
 
 ## License and disclaimer
 
